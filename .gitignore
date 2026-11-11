@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+
+# Tools
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Raw downloads stay local; only small processed demo files are committed
+data/raw/*
+!data/raw/.gitkeep
+
+# Exported maps
+*.html
+!docs/*.html
+
+# OS
+.DS_Store
+Thumbs.db

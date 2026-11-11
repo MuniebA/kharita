@@ -1,0 +1,403 @@
+{
+ "viridis": {
+  "kind": "sequential",
+  "source": "matplotlib",
+  "colors": [
+   "#440154",
+   "#482475",
+   "#414487",
+   "#355f8d",
+   "#2a788e",
+   "#21918c",
+   "#22a884",
+   "#44bf70",
+   "#7ad151",
+   "#bddf26",
+   "#fde725"
+  ]
+ },
+ "magma": {
+  "kind": "sequential",
+  "source": "matplotlib",
+  "colors": [
+   "#000004",
+   "#140e36",
+   "#3b0f70",
+   "#641a80",
+   "#8c2981",
+   "#b73779",
+   "#de4968",
+   "#f7705c",
+   "#fe9f6d",
+   "#fecf92",
+   "#fcfdbf"
+  ]
+ },
+ "plasma": {
+  "kind": "sequential",
+  "source": "matplotlib",
+  "colors": [
+   "#0d0887",
+   "#41049d",
+   "#6a00a8",
+   "#8f0da4",
+   "#b12a90",
+   "#cc4778",
+   "#e16462",
+   "#f2844b",
+   "#fca636",
+   "#fcce25",
+   "#f0f921"
+  ]
+ },
+ "inferno": {
+  "kind": "sequential",
+  "source": "matplotlib",
+  "colors": [
+   "#000004",
+   "#160b39",
+   "#420a68",
+   "#6a176e",
+   "#932667",
+   "#bc3754",
+   "#dd513a",
+   "#f37819",
+   "#fca50a",
+   "#f6d746",
+   "#fcffa4"
+  ]
+ },
+ "cividis": {
+  "kind": "sequential",
+  "source": "matplotlib",
+  "colors": [
+   "#00224e",
+   "#083370",
+   "#35456c",
+   "#4f576c",
+   "#666970",
+   "#7d7c78",
+   "#948e77",
+   "#aea371",
+   "#c8b866",
+   "#e5cf52",
+   "#fee838"
+  ]
+ },
+ "blues": {
+  "kind": "sequential",
+  "source": "colorbrewer",
+  "colors": [
+   "#f7fbff",
+   "#e3eef9",
+   "#d0e1f2",
+   "#b7d4ea",
+   "#94c4df",
+   "#6aaed6",
+   "#4a98c9",
+   "#2e7ebc",
+   "#1764ab",
+   "#084a91",
+   "#08306b"
+  ]
+ },
+ "greens": {
+  "kind": "sequential",
+  "source": "colorbrewer",
+  "colors": [
+   "#f7fcf5",
+   "#e9f7e5",
+   "#d3eecd",
+   "#b8e3b2",
+   "#98d594",
+   "#73c476",
+   "#4bb062",
+   "#2f974e",
+   "#157f3b",
+   "#006428",
+   "#00441b"
+  ]
+ },
+ "reds": {
+  "kind": "sequential",
+  "source": "colorbrewer",
+  "colors": [
+   "#fff5f0",
+   "#fee5d8",
+   "#fdcab5",
+   "#fcab8f",
+   "#fc8a6a",
+   "#fb694a",
+   "#f14432",
+   "#d92523",
+   "#bc141a",
+   "#980c13",
+   "#67000d"
+  ]
+ },
+ "oranges": {
+  "kind": "sequential",
+  "source": "colorbrewer",
+  "colors": [
+   "#fff5eb",
+   "#fee9d4",
+   "#fdd9b4",
+   "#fdc38d",
+   "#fda762",
+   "#fd8c3b",
+   "#f3701b",
+   "#e25508",
+   "#c54102",
+   "#9e3303",
+   "#7f2704"
+  ]
+ },
+ "purples": {
+  "kind": "sequential",
+  "source": "colorbrewer",
+  "colors": [
+   "#fcfbfd",
+   "#f2f0f7",
+   "#e2e2ef",
+   "#cecfe5",
+   "#b6b6d8",
+   "#9e9ac8",
+   "#8683bd",
+   "#7262ac",
+   "#61409b",
+   "#4f1f8b",
+   "#3f007d"
+  ]
+ },
+ "ylorrd": {
+  "kind": "sequential",
+  "source": "colorbrewer",
+  "colors": [
+   "#ffffcc",
+   "#fff1a9",
+   "#fee187",
+   "#feca66",
+   "#feab49",
+   "#fd8c3c",
+   "#fc5b2e",
+   "#ed2e21",
+   "#d41020",
+   "#b00026",
+   "#800026"
+  ]
+ },
+ "ylgnbu": {
+  "kind": "sequential",
+  "source": "colorbrewer",
+  "colors": [
+   "#ffffd9",
+   "#f1faba",
+   "#d6efb3",
+   "#abdeb7",
+   "#73c8bd",
+   "#40b5c4",
+   "#2498c1",
+   "#2072b1",
+   "#234da0",
+   "#1f2f87",
+   "#081d58"
+  ]
+ },
+ "orrd": {
+  "kind": "sequential",
+  "source": "colorbrewer",
+  "colors": [
+   "#fff7ec",
+   "#feebd0",
+   "#fddcaf",
+   "#fdca94",
+   "#fdb27b",
+   "#fc8c59",
+   "#f26d4b",
+   "#e0442f",
+   "#c91d13",
+   "#a80000",
+   "#7f0000"
+  ]
+ },
+ "bupu": {
+  "kind": "sequential",
+  "source": "colorbrewer",
+  "colors": [
+   "#f7fcfd",
+   "#e5eff6",
+   "#ccddec",
+   "#b2cae1",
+   "#9ab4d6",
+   "#8c95c6",
+   "#8c74b5",
+   "#8a51a5",
+   "#852d90",
+   "#760c71",
+   "#4d004b"
+  ]
+ },
+ "ylgn": {
+  "kind": "sequential",
+  "source": "colorbrewer",
+  "colors": [
+   "#ffffe5",
+   "#f9fdc2",
+   "#e5f5ac",
+   "#c8e99b",
+   "#a2d88a",
+   "#77c679",
+   "#4cb063",
+   "#2f934d",
+   "#15793e",
+   "#006034",
+   "#004529"
+  ]
+ },
+ "rdbu": {
+  "kind": "diverging",
+  "source": "colorbrewer",
+  "colors": [
+   "#67001f",
+   "#b1182b",
+   "#d6604d",
+   "#f3a481",
+   "#fddbc7",
+   "#f6f7f7",
+   "#d1e5f0",
+   "#90c4dd",
+   "#4393c3",
+   "#2065ab",
+   "#053061"
+  ]
+ },
+ "rdylbu": {
+  "kind": "diverging",
+  "source": "colorbrewer",
+  "colors": [
+   "#a50026",
+   "#d62f27",
+   "#f46d43",
+   "#fdad60",
+   "#fee090",
+   "#feffc0",
+   "#e0f3f8",
+   "#aad8e9",
+   "#74add1",
+   "#4574b3",
+   "#313695"
+  ]
+ },
+ "brbg": {
+  "kind": "diverging",
+  "source": "colorbrewer",
+  "colors": [
+   "#543005",
+   "#8b500a",
+   "#bf812d",
+   "#dec17b",
+   "#f6e8c3",
+   "#f4f5f5",
+   "#c7eae5",
+   "#7fccc0",
+   "#35978f",
+   "#01655d",
+   "#003c30"
+  ]
+ },
+ "piyg": {
+  "kind": "diverging",
+  "source": "colorbrewer",
+  "colors": [
+   "#8e0152",
+   "#c41a7c",
+   "#de77ae",
+   "#f1b5d9",
+   "#fde0ef",
+   "#f7f7f6",
+   "#e6f5d0",
+   "#b7e085",
+   "#7fbc41",
+   "#4c9121",
+   "#276419"
+  ]
+ },
+ "puor": {
+  "kind": "diverging",
+  "source": "colorbrewer",
+  "colors": [
+   "#7f3b08",
+   "#b25706",
+   "#e08214",
+   "#fcb761",
+   "#fee0b6",
+   "#f6f6f7",
+   "#d8daeb",
+   "#b1aad1",
+   "#8073ac",
+   "#532687",
+   "#2d004b"
+  ]
+ },
+ "set2": {
+  "kind": "categorical",
+  "source": "colorbrewer",
+  "colors": [
+   "#66c2a5",
+   "#fc8d62",
+   "#8da0cb",
+   "#e78ac3",
+   "#a6d854",
+   "#ffd92f",
+   "#e5c494",
+   "#b3b3b3"
+  ]
+ },
+ "dark2": {
+  "kind": "categorical",
+  "source": "colorbrewer",
+  "colors": [
+   "#1b9e77",
+   "#d95f02",
+   "#7570b3",
+   "#e7298a",
+   "#66a61e",
+   "#e6ab02",
+   "#a6761d",
+   "#666666"
+  ]
+ },
+ "paired": {
+  "kind": "categorical",
+  "source": "colorbrewer",
+  "colors": [
+   "#a6cee3",
+   "#1f78b4",
+   "#b2df8a",
+   "#33a02c",
+   "#fb9a99",
+   "#e31a1c",
+   "#fdbf6f",
+   "#ff7f00",
+   "#cab2d6",
+   "#6a3d9a",
+   "#ffff99",
+   "#b15928"
+  ]
+ },
+ "set1": {
+  "kind": "categorical",
+  "source": "colorbrewer",
+  "colors": [
+   "#e41a1c",
+   "#377eb8",
+   "#4daf4a",
+   "#984ea3",
+   "#ff7f00",
+   "#ffff33",
+   "#a65628",
+   "#f781bf",
+   "#999999"
+  ]
+ }
+}
