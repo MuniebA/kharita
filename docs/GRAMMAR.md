@@ -1,5 +1,7 @@
 # kharita style grammar, v0.1
 
+Run `kh.help()` for this list in a notebook, and `kh.explain(style)` to see what a style compiles to.
+
 A style is a space-separated list of utilities. Order does not matter. Two utilities that set the same property raise `StyleSyntaxError`.
 
 ```python
@@ -55,10 +57,16 @@ kh.layer(states, "fill-[pop] scheme-q5", legend={"title": "Population", "fmt": "
 
 | Feature | Example |
 | --- | --- |
-| Built-in preset | `preset-choropleth` expands to `scheme-q5 stroke-1 stroke-white null-gray-300` |
+| Built-in presets | `preset-choropleth`: `scheme-q5 stroke-1 stroke-white null-gray-300 highlight-amber-400` |
+| | `preset-outline`: `fill-transparent stroke-2 stroke-slate-700` |
+| | `preset-points`: `size-4 stroke-1 stroke-white highlight-amber-400` |
 | Your own named style | `kh.define("roads", "stroke-2 stroke-slate-400")`, then `preset-roads` |
 
-## Gated on the Phase 1 spike
+Explicit utilities always override a preset's, wherever they appear in the string: `preset-choropleth scheme-e4` uses equal intervals.
+
+## Hover and 3D
+
+Both passed the Phase 1 spike.
 
 | Utility | Meaning | Example |
 | --- | --- | --- |
@@ -70,5 +78,5 @@ kh.layer(states, "fill-[pop] scheme-q5", legend={"title": "Population", "fmt": "
 
 | Error | Raised when |
 | --- | --- |
-| `StyleSyntaxError` | Unknown utility, bad colour, unbalanced bracket, conflicting utilities. Carries the token, its position and a suggestion |
+| `StyleSyntaxError` | Unknown utility, bad colour, unbalanced bracket, two utilities setting the same thing, a ramp or scheme without a data-bound fill, a categorical ramp with a numeric scheme. Carries the token, its position and a suggestion |
 | `BindingError` | A column is missing, not numeric where a number is needed, or the CRS is missing. Carries the column and the closest names |
