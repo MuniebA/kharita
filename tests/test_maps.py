@@ -4,7 +4,8 @@ import pytest
 from lonboard.basemap import MaplibreBasemap
 
 import kharita as kh
-from kharita.maps import OPENFREEMAP_POSITRON
+from kharita import basemaps as kb
+from kharita.basemaps import HOSTED
 
 
 def test_one_liner_builds_a_lonboard_map(polygons):
@@ -12,7 +13,7 @@ def test_one_liner_builds_a_lonboard_map(polygons):
     assert len(m.layers) == 1
     lm = m.lonboard
     assert isinstance(lm.basemap, MaplibreBasemap)
-    assert lm.basemap.style == OPENFREEMAP_POSITRON
+    assert lm.basemap.style == HOSTED["light"]
     assert lm.show_side_panel is False
 
 
@@ -20,6 +21,8 @@ def test_basemap_tokens(polygons):
     assert kh.map(polygons, "fill-red-500 basemap-none").lonboard.basemap is None
     dark = kh.map(polygons, "fill-[pop] basemap-dark")
     assert dark.dark and "#111827e6" in dark.legend_html()
+    # Keyless OpenFreeMap dark replaced CARTO Dark Matter after the design spike
+    assert dark.lonboard.basemap.style == HOSTED["dark"]
 
 
 def test_explicit_basemap_wins_over_style(polygons):
@@ -87,3 +90,67 @@ def test_export_carries_legend_and_fills_window(polygons, tmp_path):
 def test_empty_map_raises():
     with pytest.raises(ValueError, match="no layers"):
         _ = kh.Map().lonboard
+
+
+def test_bottom_right_legend_clears_corner_button(polygons):
+    # Lonboard's bottom-right button is about 60px tall with its margin
+    m = kh.map(polygons, "fill-[pop]")
+    assert "bottom:72px;right:12px" in m.to_html()
+    assert "72px" in m.widget().children[0].value
+
+
+def test_theme_sets_basemap_legend_and_ramp(polygons):
+    m = kh.map(polygons, "fill-[pop] theme-midnight")
+    assert m.basemap_name == "midnight" and m.dark
+    assert m.lonboard.basemap.style.startswith("data:application/json;base64,")
+    assert m.bounds[0].fill_scale.colors[0] == "#440154"
+    paper = kh.map(polygons, "fill-[pop] theme-paper")
+    assert not paper.dark and paper.bounds[0].fill_scale.colors[0] == "#ffffcc"
+    # A typed ramp still wins over the theme's
+    typed = kh.map(polygons, "fill-[pop] theme-paper ramp-blues")
+    assert typed.bounds[0].fill_scale.colors[0] != "#ffffcc"
+
+
+def test_themed_layers_sit_under_labels(polygons):
+    m = kh.map(polygons, "fill-[pop] basemap-paper")
+    assert m.lonboard.basemap.mode == "interleaved"
+    assert all(x.before_id == kb.FIRST_LABEL for x in m.lonboard.layers)
+    hidden = kh.map(polygons, "fill-[pop] basemap-paper labels-none")
+    assert hidden.lonboard.basemap.mode == "overlaid"
+    assert all(x.before_id is None for x in hidden.lonboard.layers)
+    hosted = kh.map(polygons, "fill-[pop] basemap-light")
+    assert all(x.before_id is None for x in hosted.lonboard.layers)
+
+
+def test_relief_and_buildings_pick_paper_by_default(polygons):
+    m = kh.map(polygons, "fill-[pop] relief-tint")
+    assert m.basemap_name == "paper"
+    style = m.lonboard.basemap.style
+    assert style.startswith("data:")
+    tall = kh.map(polygons, "fill-[pop] basemap-midnight buildings-3d")
+    assert tall.lonboard.view_state.pitch == 45
+
+
+def test_relief_on_a_hosted_basemap_raises(polygons):
+    with pytest.raises(kh.StyleSyntaxError, match="not one"):
+        kh.parse("relief-soft basemap-light")
+    with pytest.raises(ValueError, match="kharita basemap"):
+        kh.Map(basemap="dark").add(polygons, "fill-[pop] buildings-3d")
+
+
+def test_glow_sets_map_parameters_and_warns_on_light(polygons):
+    m = kh.map(polygons, "fill-[pop] basemap-neon glow")
+    assert m.lonboard.parameters["blendColorDstFactor"] == "one"
+    with pytest.warns(kh.KharitaWarning, match="glow"):
+        _ = kh.map(polygons, "fill-[pop] glow").lonboard
+    assert kh.map(polygons, "fill-[pop]").lonboard.parameters is None
+
+
+def test_first_layer_settings_win(polygons):
+    m = kh.Map().add(polygons, "fill-gray-200 theme-neon").add(polygons, "fill-[pop] theme-paper")
+    assert m.theme == "neon"
+
+
+def test_terrain_export(polygons):
+    page = kh.map(polygons, "fill-[pop] basemap-terrain").to_html()
+    assert "data:application/json;base64," in page and "kharita-legend" in page

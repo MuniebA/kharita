@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "kharita"
-version = "0.0.4"
+version = "0.0.6"
 description = "Classified, legended Lonboard maps from one style string."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -28,6 +28,10 @@ dev = [
     "ruff>=0.6",
     "jupyterlab>=4",
     "openpyxl>=3.1",
+]
+# Only for notebooks/00b_city_data.ipynb, which downloads Overture Maps data
+demo = [
+    "overturemaps>=2.1",
 ]
 
 [tool.hatch.build.targets.wheel]

@@ -4,9 +4,10 @@ import re
 from collections.abc import Callable
 from dataclasses import dataclass
 
+from kharita.basemaps import BASEMAP_NAMES, BUILDINGS, RELIEFS
 from kharita.expr import is_number, parse_columns, parse_expr
 from kharita.palette import get_ramp, parse_color
-from kharita.spec import LEGEND_POSITIONS, Scheme
+from kharita.spec import LEGEND_POSITIONS, THEME_RAMPS, Scheme
 
 
 @dataclass(frozen=True)
@@ -17,6 +18,7 @@ class Utility:
     examples: tuple[str, ...]
     bad_examples: tuple[str, ...]
     handler: Callable | None
+    bare: bool = False
 
 
 def _bracket(rest: str) -> str:
@@ -116,10 +118,42 @@ def _highlight(b, rest: str) -> None:
     b.set("highlight", highlight=parse_color(rest))
 
 
+def _one_of(rest: str, options, what: str) -> str:
+    # The value if it is one of the options, else a clear error
+    if rest not in options:
+        raise ValueError(f"{what} must be one of {', '.join(options)}, got '{rest}'.")
+    return rest
+
+
 def _basemap(b, rest: str) -> None:
-    if rest not in ("light", "dark", "none"):
-        raise ValueError(f"Basemap must be light, dark or none, got '{rest}'.")
-    b.set("basemap", basemap=rest)
+    b.set("basemap", basemap=_one_of(rest, BASEMAP_NAMES, "Basemap"))
+
+
+def _theme(b, rest: str) -> None:
+    b.set("theme", theme=_one_of(rest, tuple(THEME_RAMPS), "Theme"))
+
+
+def _relief(b, rest: str) -> None:
+    b.set("relief", relief=_one_of(rest, RELIEFS, "Relief"))
+
+
+def _buildings(b, rest: str) -> None:
+    b.set("buildings", buildings=_one_of(rest, BUILDINGS, "Buildings"))
+
+
+def _labels(b, rest: str) -> None:
+    _one_of(rest, ("none",), "Labels")
+    b.set("labels", labels=False)
+
+
+def _halo(b, rest: str) -> None:
+    b.set("halo", halo=parse_color(rest))
+
+
+def _glow(b, rest: str) -> None:
+    if rest:
+        raise ValueError("glow takes no value; write it on its own as glow.")
+    b.set("glow", glow=True)
 
 
 def _legend(b, rest: str) -> None:
@@ -178,9 +212,28 @@ UTILITIES: dict[str, Utility] = {
         Utility("highlight", "highlight-<colour>", "Colour of the feature under the mouse",
                 ("highlight-amber-400", "highlight-amber-400/80"), ("highlight-amber",),
                 _highlight),
-        Utility("basemap", "basemap-light | basemap-dark | basemap-none", "Basemap theme",
-                ("basemap-light", "basemap-dark", "basemap-none"), ("basemap-satellite",),
+        Utility("basemap", "basemap-<name>",
+                "Basemap: light, dark, fiord, paper, midnight, mono, neon, muted, terrain, none",
+                ("basemap-light", "basemap-dark", "basemap-fiord", "basemap-paper",
+                 "basemap-midnight", "basemap-terrain", "basemap-none"), ("basemap-satellite",),
                 _basemap),
+        Utility("theme", "theme-paper | theme-midnight | theme-mono | theme-neon",
+                "Basemap, default ramp and legend style together",
+                ("theme-paper", "theme-midnight", "theme-mono", "theme-neon"), ("theme-blue",),
+                _theme),
+        Utility("relief", "relief-soft | relief-sharp | relief-tint",
+                "Shaded terrain under a kharita basemap",
+                ("relief-soft", "relief-sharp", "relief-tint"), ("relief-3d",), _relief),
+        Utility("buildings", "buildings-flat | buildings-3d | buildings-none",
+                "Basemap building footprints from zoom 13",
+                ("buildings-flat", "buildings-3d", "buildings-none"), ("buildings-tall",),
+                _buildings),
+        Utility("labels", "labels-none", "Hide the place labels of a kharita basemap",
+                ("labels-none",), ("labels-big",), _labels),
+        Utility("halo", "halo-<colour>", "A soft glow around outlines, lines or points",
+                ("halo-cyan-300", "halo-white/60"), ("halo-cyan",), _halo),
+        Utility("glow", "glow", "Colours add up where features overlap; for dark basemaps",
+                ("glow",), ("glow-max",), _glow, bare=True),
         Utility("legend", "legend-none | legend-tl | legend-tr | legend-bl | legend-br",
                 "Hide the legend or choose its corner",
                 ("legend-none", "legend-br", "legend-tl"), ("legend-top",), _legend),

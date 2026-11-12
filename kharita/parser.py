@@ -3,6 +3,7 @@
 import re
 from difflib import get_close_matches
 
+from kharita.basemaps import HOSTED
 from kharita.errors import BindingError, StyleSyntaxError
 from kharita.palette import get_ramp
 from kharita.registry import BUILTIN_PRESETS, USER_PRESETS, UTILITIES, Utility
@@ -85,6 +86,10 @@ def _apply(b: _Builder, tok: Token) -> None:
     # Route one token to its utility handler
     prefix, dash, rest = tok.text.partition("-")
     utility = UTILITIES.get(prefix)
+    if utility is not None and utility.bare and not dash:
+        b.token = tok
+        utility.handler(b, "")
+        return
     if utility is None or not dash or not rest:
         if utility is not None:
             msg = f"'{tok.text}' needs a value, like '{utility.examples[0]}'."
@@ -116,6 +121,12 @@ def _check(spec: StyleSpec, style: str) -> None:
                             "fill-[column] or stroke-[column].")
     if spec.extrude_max is not None and spec.extrude_by is None:
         fail("extrude_max", "extrude-max needs extrude-[column] to scale.")
+    if spec.basemap in HOSTED or spec.basemap == "none":
+        for group in ("relief", "buildings", "labels"):
+            if group in spec.origins:
+                fail(group, f"'{spec.origins[group][0].text}' changes a kharita basemap, but "
+                            f"basemap-{spec.basemap} is not one; use paper, midnight, mono, "
+                            "neon, muted or terrain.")
     if spec.ramp and spec.scheme:
         kind = get_ramp(spec.ramp)["kind"]
         clash = (kind == "categorical" and spec.scheme.kind != "categorical") or (
@@ -244,7 +255,19 @@ def explain(style: str) -> Explanation:
     if s.extrude_by is not None:
         top = f", tallest {s.extrude_max:g} m" if s.extrude_max else ""
         rows.append(("extrude", f"data: {s.extrude_by}{top}", src("extrude")))
-    rows.append(("basemap", s.basemap or "light", src("basemap")))
+    if s.halo is not None:
+        rows.append(("halo", _rgba(s.halo), src("halo")))
+    if s.theme:
+        rows.append(("theme", s.theme, src("theme")))
+    basemap = s.basemap or s.theme or ("paper" if s.relief or s.buildings else "light")
+    rows.append(("basemap", basemap, src("basemap") if s.basemap else src("theme")))
+    for group in ("relief", "buildings"):
+        if getattr(s, group):
+            rows.append((group, getattr(s, group), src(group)))
+    if s.labels is False:
+        rows.append(("labels", "hidden", src("labels")))
+    if s.glow:
+        rows.append(("glow", "additive blending for the whole map", src("glow")))
     legend = "hidden" if not s.legend else LEGEND_POSITIONS[s.legend_position or "br"]
     rows.append(("legend", legend, src("legend")))
     if s.columns:

@@ -11,7 +11,14 @@ from kharita.errors import BindingError, KharitaWarning
 from kharita.expr import Expr
 from kharita.palette import get_ramp, parse_color
 from kharita.parser import check_columns, parse
-from kharita.spec import DEFAULT_NULL, DEFAULT_NUMERIC, DEFAULT_TEXT, Scheme, StyleSpec
+from kharita.spec import (
+    DEFAULT_NULL,
+    DEFAULT_NUMERIC,
+    DEFAULT_TEXT,
+    THEME_RAMPS,
+    Scheme,
+    StyleSpec,
+)
 
 FEW_DISTINCT = 12
 DEFAULT_HEIGHT_SHARE = 0.1
@@ -110,7 +117,8 @@ def _colour(spec: StyleSpec, data: pd.DataFrame, expr: Expr) -> tuple[np.ndarray
     if not numeric:
         raise BindingError(f"[{label}] is text, so it cannot use {scheme}; use scheme-cat.",
                            column=expr.column)
-    ramp = spec.ramp or ("rdbu" if scheme.kind == "diverging" else DEFAULT_NUMERIC[0])
+    themed = THEME_RAMPS.get(spec.theme, DEFAULT_NUMERIC[0])
+    ramp = spec.ramp or ("rdbu" if scheme.kind == "diverging" else themed)
     return classify_numeric(values, scheme, ramp, spec.ramp_reverse, label, null)
 
 

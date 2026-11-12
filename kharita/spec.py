@@ -9,6 +9,8 @@ from kharita.tokenizer import Token
 DEFAULT_NULL = "gray-300"
 DEFAULT_NUMERIC = ("viridis", "q5")
 DEFAULT_TEXT = ("set2", "cat")
+# Default numeric ramp each theme gives data it colours
+THEME_RAMPS = {"paper": "ylorrd", "midnight": "viridis", "mono": "blues", "neon": "plasma"}
 LEGEND_POSITIONS = {"tl": "top left", "tr": "top right", "bl": "bottom left", "br": "bottom right"}
 
 
@@ -49,6 +51,12 @@ class StyleSpec:
     extrude_by: Expr | None = None
     extrude_max: float | None = None
     basemap: str | None = None
+    theme: str | None = None
+    relief: str | None = None
+    buildings: str | None = None
+    labels: bool | None = None
+    halo: RGBA | None = None
+    glow: bool = False
     legend: bool = True
     legend_position: str | None = None
     origins: dict[str, list[Token]] = field(default_factory=dict, repr=False)

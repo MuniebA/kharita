@@ -191,3 +191,16 @@ def test_preset_scheme_yields_to_categorical_ramp():
 def test_typed_scheme_still_clashes_with_categorical_ramp():
     with pytest.raises(kh.StyleSyntaxError, match="for categories"):
         kh.parse("fill-[kind] ramp-set2 scheme-q5")
+
+
+def test_glow_is_a_bare_utility():
+    assert kh.parse("glow").glow is True
+    with pytest.raises(kh.StyleSyntaxError, match="takes no value"):
+        kh.parse("glow-max")
+
+
+def test_explain_shows_design_settings():
+    text = kh.explain("fill-[pop] theme-midnight relief-sharp buildings-3d halo-cyan-300 glow")
+    for word in ("theme", "midnight", "relief", "sharp", "buildings", "halo", "glow"):
+        assert word in text
+    assert "paper" in kh.explain("fill-[pop] relief-soft")

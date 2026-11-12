@@ -17,6 +17,8 @@ https://data.humdata.org/dataset/cod-ab-sdn, licence CC BY-IGO.
 
 Do **not** use `sudan-administative-boundaries-1`: its licence is humanitarian use only.
 
+Khartoum roads and buildings: OpenStreetMap contributors, ODbL 1.0. Downloaded by notebooks/00b_city_data.ipynb; not committed.
+
 ## Attribution to show with every demo map
 
 > Boundaries and population: U.S. Census Bureau, via HDX, CC BY 4.0. Simplified and joined for this demo.
@@ -36,3 +38,4 @@ Licence: https://creativecommons.org/licenses/by/4.0/
 - `data/processed/sudan_states.gpkg` is the small cleaned file the demo uses; it is committed.
 
 The figures are census-based estimates for planning and demonstration, not current counts.
+

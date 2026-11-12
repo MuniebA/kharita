@@ -20,6 +20,8 @@ LINE_COLOR = "slate-600"
 LINE_WIDTH = 2.0
 POINT_FILL = "indigo-500/90"
 POINT_SIZE = 4.0
+# Halo: two faint bands, the outer wider and fainter, as share of the colour's alpha
+HALO_BANDS = ((9.0, 0.15), (3.0, 0.30))
 
 
 def _warn(message: str) -> None:
@@ -139,7 +141,36 @@ def _point_layer(sub, spec, b: Bound, rows):
     return ScatterplotLayer.from_geopandas(sub, **kw)
 
 
-BUILDERS = ((POLYGONS, _polygon_layer), (LINES, _line_layer), (POINTS, _point_layer))
+def _halo_layers(sub, spec, kind: str) -> list:
+    # Faint wide bands drawn under the layer: along outlines, lines or around points
+    from lonboard import PathLayer, ScatterplotLayer
+
+    r, g, b, a = spec.halo
+    out = []
+    if kind == "points":
+        base = spec.size or POINT_SIZE
+        for extra, share in HALO_BANDS:
+            color = [r, g, b, round(a * share)]
+            out.append(ScatterplotLayer.from_geopandas(
+                sub[["geometry"]], get_fill_color=color, get_radius=base + extra,
+                radius_units="pixels", pickable=False))
+        return out
+    edges = sub[["geometry"]]
+    if kind == "polygons":
+        edges = edges.set_geometry(edges.boundary)
+        base = spec.stroke_width or POLYGON_STROKE_WIDTH
+    else:
+        base = spec.stroke_width or LINE_WIDTH
+    for extra, share in HALO_BANDS:
+        color = [r, g, b, round(a * share)]
+        out.append(PathLayer.from_geopandas(edges, get_color=color, get_width=base + extra,
+                                            width_units="pixels", cap_rounded=True,
+                                            joint_rounded=True, pickable=False))
+    return out
+
+
+BUILDERS = (("polygons", POLYGONS, _polygon_layer), ("lines", LINES, _line_layer),
+            ("points", POINTS, _point_layer))
 
 
 def build(gdf, style) -> tuple[list, Bound]:
@@ -155,12 +186,15 @@ def build(gdf, style) -> tuple[list, Bound]:
     tooltip = list(spec.tooltip or ())
 
     layers, drawn = [], np.zeros(len(gdf), dtype=bool)
-    for names, builder in BUILDERS:
+    for kind, names, builder in BUILDERS:
         mask = present & np.isin(types, names)
         if not mask.any():
             continue
         rows = np.flatnonzero(mask)
-        layers.append(builder(_subset(gdf, rows, tooltip), spec, b, rows))
+        sub = _subset(gdf, rows, tooltip)
+        if spec.halo is not None:
+            layers.extend(_halo_layers(sub, spec, kind))
+        layers.append(builder(sub, spec, b, rows))
         drawn |= mask
     skipped = present & ~drawn
     if skipped.any():

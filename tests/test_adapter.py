@@ -145,3 +145,27 @@ def test_stroke_by_data_on_lines(lines):
 def test_fill_and_stroke_from_data_conflict(lines):
     with pytest.raises(kh.StyleSyntaxError, match="Only one colour"):
         kh.layer(lines, "fill-[kind] stroke-[kind]")
+
+
+def test_halo_draws_two_faint_bands_under_polygons(polygons):
+    layers = kh.layer(polygons, "fill-[pop] halo-cyan-300")
+    assert [type(x) for x in layers] == [PathLayer, PathLayer, PolygonLayer]
+    outer, inner = layers[0], layers[1]
+    assert outer.get_width > inner.get_width
+    assert outer.get_color[3] < inner.get_color[3]
+    assert not outer.pickable and not inner.pickable
+
+
+def test_halo_opacity_scales_the_bands(polygons):
+    full = kh.layer(polygons, "fill-red-500 halo-white")[1].get_color[3]
+    half = kh.layer(polygons, "fill-red-500 halo-white/50")[1].get_color[3]
+    assert half == pytest.approx(full / 2, abs=1)
+
+
+def test_halo_on_lines_and_points(lines, points):
+    line_layers = kh.layer(lines, "stroke-3 halo-amber-300")
+    assert [type(x) for x in line_layers] == [PathLayer, PathLayer, PathLayer]
+    assert line_layers[0].get_width == 3 + 9
+    point_layers = kh.layer(points, "size-5 halo-amber-300")
+    assert [type(x) for x in point_layers] == [ScatterplotLayer] * 3
+    assert point_layers[0].get_radius == 5 + 9

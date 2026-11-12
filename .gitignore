@@ -16,6 +16,9 @@ venv/
 data/raw/*
 !data/raw/.gitkeep
 
+# OpenStreetMap city extracts are rebuilt by notebooks/00b_city_data.ipynb
+data/processed/khartoum_*.gpkg
+
 # Exported maps
 *.html
 !docs/*.html

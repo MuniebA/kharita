@@ -48,5 +48,7 @@ def test_bad_examples_raise(name, example):
 
 def test_grammar_doc_mentions_every_utility():
     doc = (Path(__file__).parents[1] / "docs" / "GRAMMAR.md").read_text(encoding="utf-8")
-    missing = [u.name for u in UTILITIES.values() if f"`{u.name}-" not in doc]
+    # Bare utilities such as glow appear without a dash
+    missing = [u.name for u in UTILITIES.values()
+               if f"`{u.name}-" not in doc and not (u.bare and f"`{u.name}`" in doc)]
     assert not missing, f"Add these utilities to docs/GRAMMAR.md: {missing}"

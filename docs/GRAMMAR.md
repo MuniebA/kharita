@@ -14,7 +14,7 @@ kh.map(states, "fill-[pop/area] ramp-ylorrd scheme-q5 stroke-1 stroke-white", le
 
 | Function | Returns |
 | --- | --- |
-| `kh.map(gdf, style, legend=None, basemap=None, height=500)` | A `kh.Map`; shows itself in a notebook |
+| `kh.map(gdf, style, legend=None, basemap=None, height=500)` | A `kh.Map`; shows itself in a notebook. `basemap=` takes any basemap name and overrides the style |
 | `kh.Map(basemap=None, height=500).add(gdf, style, legend=None)` | The same map, for several layers; `.to_html(path)` exports one HTML file |
 | `kh.layer(gdf, style)` | Native Lonboard layers, one per geometry type, for your own `lonboard.Map` |
 | `kh.legend(gdf, style, dark=False, **legend)` | The legend card as HTML |
@@ -73,7 +73,7 @@ A colour is `<family>-<shade>` (22 families, shades 50 to 950), `white`, `black`
 
 | Utility | Meaning | Example |
 | --- | --- | --- |
-| `basemap-light`, `basemap-dark`, `basemap-none` | Basemap theme | `basemap-dark` |
+| `basemap-<name>` | Basemap (see Design below) | `basemap-dark` |
 | `legend-none` | Hide this layer's legend | `legend-none` |
 | `legend-tl`, `legend-tr`, `legend-bl`, `legend-br` | Legend corner | `legend-br` |
 
@@ -82,6 +82,39 @@ Text such as legend titles, number formats and class labels goes in keyword argu
 ```python
 kh.layer(states, "fill-[pop] scheme-q5", legend={"title": "Population", "fmt": "{:,.0f}", "labels": ["Low", "", "", "", "High"]})
 ```
+
+## Design
+
+Every basemap is keyless. Three are hosted by OpenFreeMap and used as they are; the rest are kharita themes, built as MapLibre styles so kharita can recolour them, add relief and buildings, and draw your data under the place names.
+
+| Basemap | Look | Kind |
+| --- | --- | --- |
+| `basemap-light` | Light grey, the default | Hosted (positron) |
+| `basemap-dark` | Near black | Hosted |
+| `basemap-fiord` | Slate blue | Hosted |
+| `basemap-paper` | Warm cream, print style | Theme |
+| `basemap-midnight` | Deep navy | Theme |
+| `basemap-mono` | Neutral greys | Theme |
+| `basemap-neon` | Dark violet | Theme |
+| `basemap-muted` | Pale, no labels | Theme |
+| `basemap-terrain` | Paper with tinted relief | Theme |
+| `basemap-none` | Nothing | |
+
+| Utility | Meaning | Example |
+| --- | --- | --- |
+| `theme-<name>` | Basemap, default ramp and legend style together: `paper` (ylorrd), `midnight` (viridis), `mono` (blues), `neon` (plasma) | `theme-midnight` |
+| `relief-soft` | Shaded terrain, one light source | `relief-soft` |
+| `relief-sharp` | Shaded terrain lit from four directions; crisper ridges | `relief-sharp` |
+| `relief-tint` | Colour by elevation, with shading on top | `relief-tint` |
+| `buildings-flat`, `buildings-3d`, `buildings-none` | Basemap building footprints from zoom 13 (flat is the default) | `buildings-3d` |
+| `labels-none` | Hide the basemap's place labels | `labels-none` |
+| `halo-<colour>` | Two faint wide bands under outlines, lines or points; opacity scales both | `halo-cyan-300` |
+| `glow` | Colours add up where features overlap. Applies to the whole map; meant for dark basemaps | `glow` |
+
+- On a theme with labels, your layers are drawn under the place names, so labels stay readable over the data.
+- `relief-*`, `buildings-*` and `labels-none` need a theme; with no basemap set they pick `paper`. On `basemap-light`, `dark` or `fiord` they raise an error.
+- A typed `ramp-` always beats the theme's default ramp. In a map with several layers, the first layer to set the basemap, theme, relief, buildings or labels wins.
+- Elevation comes from the Mapzen Terrain Tiles on AWS Open Data; place data from OpenStreetMap via OpenFreeMap. Both credits appear on the map.
 
 ## Reuse
 
@@ -96,7 +129,7 @@ Explicit utilities always override a preset's, wherever they appear in the strin
 
 ## Hover and 3D
 
-Both passed the Phase 1 spike.
+Both passed the Phase 1 spike. `buildings-3d` and `extrude-[...]` tilt the camera to 45 degrees.
 
 | Utility | Meaning | Example |
 | --- | --- | --- |
