@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "kharita"
-version = "0.0.3"
+version = "0.0.4"
 description = "Classified, legended Lonboard maps from one style string."
 readme = "README.md"
 requires-python = ">=3.11"

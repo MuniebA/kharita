@@ -68,8 +68,8 @@ def test_stroke_colour_and_width_do_not_conflict():
 @pytest.mark.parametrize(
     "style, phrase",
     [
-        ("ramp-viridis", "data-bound fill"),
-        ("scheme-q5 fill-red-500", "data-bound fill"),
+        ("ramp-viridis", "data-bound colour"),
+        ("scheme-q5 fill-red-500", "data-bound colour"),
         ("extrude-max-100", "extrude-\\[column\\]"),
         ("fill-[x] ramp-set2 scheme-q5", "for categories"),
         ("fill-[x] ramp-viridis scheme-div", "diverging ramp"),
@@ -181,3 +181,13 @@ def test_help_prints(capsys):
 def test_utilities_list():
     names = [u.name for u in kh.utilities()]
     assert {"fill", "stroke", "scheme", "preset"} <= set(names)
+
+
+def test_preset_scheme_yields_to_categorical_ramp():
+    s = kh.parse("preset-choropleth fill-[kind] ramp-set2")
+    assert s.scheme is None and s.stroke_width == 1
+
+
+def test_typed_scheme_still_clashes_with_categorical_ramp():
+    with pytest.raises(kh.StyleSyntaxError, match="for categories"):
+        kh.parse("fill-[kind] ramp-set2 scheme-q5")

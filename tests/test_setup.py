@@ -12,7 +12,7 @@ HEX = re.compile(r"^#[0-9a-f]{6}$")
 
 
 def test_version():
-    assert kharita.__version__ == "0.0.3"
+    assert kharita.__version__ == "0.0.4"
 
 
 def test_errors_share_a_base():

@@ -23,6 +23,8 @@ class Bound:
     n: int
     fill: np.ndarray | None = None
     fill_scale: Scale | None = None
+    stroke: np.ndarray | None = None
+    stroke_scale: Scale | None = None
     elevation: np.ndarray | None = None
     elevation_max: float | None = None
 
@@ -77,9 +79,8 @@ def evaluate(data: pd.DataFrame, expr: Expr) -> tuple[np.ndarray, bool]:
     return values, True
 
 
-def _fill(spec: StyleSpec, data: pd.DataFrame) -> tuple[np.ndarray, Scale]:
-    # Colour array and scale for fill-[...]
-    expr = spec.fill_by
+def _colour(spec: StyleSpec, data: pd.DataFrame, expr: Expr) -> tuple[np.ndarray, Scale]:
+    # Colour array and scale for fill-[...] or stroke-[...]
     label = str(expr)
     values, numeric = evaluate(data, expr)
     present = np.isfinite(values) if numeric else ~pd.isna(values)
@@ -90,6 +91,9 @@ def _fill(spec: StyleSpec, data: pd.DataFrame) -> tuple[np.ndarray, Scale]:
     ramp_kind = get_ramp(spec.ramp)["kind"] if spec.ramp else None
 
     scheme = spec.scheme
+    if scheme is not None and not numeric and spec.from_preset("scheme"):
+        # A preset's numeric scheme yields to text data
+        scheme = None
     if scheme is None:
         if not numeric or ramp_kind == "categorical":
             scheme = Scheme("categorical")
@@ -154,8 +158,11 @@ def bind(data: pd.DataFrame, style) -> Bound:
         raise TypeError(f"Expected a GeoDataFrame or DataFrame, got {type(data).__name__}.")
     spec = parse(style) if isinstance(style, str) else style
     check_columns(spec, data.columns)
-    fill, scale = _fill(spec, data) if spec.fill_by is not None else (None, None)
+    fill, fill_scale = (_colour(spec, data, spec.fill_by) if spec.fill_by is not None
+                        else (None, None))
+    stroke, stroke_scale = (_colour(spec, data, spec.stroke_by) if spec.stroke_by is not None
+                            else (None, None))
     elevation, tallest = (_elevation(spec, data) if spec.extrude_by is not None
                           else (None, None))
-    return Bound(spec=spec, n=len(data), fill=fill, fill_scale=scale,
-                 elevation=elevation, elevation_max=tallest)
+    return Bound(spec=spec, n=len(data), fill=fill, fill_scale=fill_scale, stroke=stroke,
+                 stroke_scale=stroke_scale, elevation=elevation, elevation_max=tallest)

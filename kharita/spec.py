@@ -39,6 +39,7 @@ class StyleSpec:
     ramp_reverse: bool = False
     scheme: Scheme | None = None
     stroke: RGBA | None = None
+    stroke_by: Expr | None = None
     stroke_width: float | None = None
     size: float | None = None
     opacity: float | None = None
@@ -52,11 +53,16 @@ class StyleSpec:
     legend_position: str | None = None
     origins: dict[str, list[Token]] = field(default_factory=dict, repr=False)
 
+    def from_preset(self, group: str) -> bool:
+        # True when a group was set only by a preset, so it may give way to the data
+        tokens = self.origins.get(group, [])
+        return bool(tokens) and all(t.via for t in tokens)
+
     @property
     def columns(self) -> tuple[str, ...]:
         # Every column the style reads, in first-seen order
         found: list[str] = []
-        for expr in (self.fill_by, self.extrude_by):
+        for expr in (self.fill_by, self.stroke_by, self.extrude_by):
             if expr:
                 found.extend(expr.columns)
         found.extend(self.tooltip or ())

@@ -57,7 +57,9 @@ def _fill(b, rest: str) -> None:
 
 
 def _stroke(b, rest: str) -> None:
-    if is_number(rest):
+    if rest.startswith("["):
+        b.set("stroke", stroke_by=parse_expr(_bracket(rest)))
+    elif is_number(rest):
         b.set("stroke_width", stroke_width=_positive(rest, "Stroke width"))
     else:
         b.set("stroke", stroke=parse_color(rest))
@@ -150,10 +152,10 @@ UTILITIES: dict[str, Utility] = {
                 ("fill-indgo-600", "fill-indigo-650", "fill-red-500/120", "fill-[]",
                  "fill-[a/b*2]", "fill-[pop]x"),
                 _fill),
-        Utility("stroke", "stroke-<colour> | stroke-<pixels>",
-                "Outline or line colour, or its width in pixels",
-                ("stroke-white", "stroke-slate-300/50", "stroke-1", "stroke-1.5"),
-                ("stroke-0", "stroke--1", "stroke-whte"),
+        Utility("stroke", "stroke-<colour> | stroke-<pixels> | stroke-[<expr>]",
+                "Outline or line colour, its width in pixels, or line colour by data",
+                ("stroke-white", "stroke-slate-300/50", "stroke-1", "stroke-1.5", "stroke-[speed]"),
+                ("stroke-0", "stroke--1", "stroke-whte", "stroke-[]"),
                 _stroke),
         Utility("size", "size-<pixels>", "Point radius in pixels",
                 ("size-6", "size-2.5"), ("size-0", "size-big"), _size),

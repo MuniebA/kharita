@@ -5,8 +5,25 @@ Run `kh.help()` for this list in a notebook, and `kh.explain(style)` to see what
 A style is a space-separated list of utilities. Order does not matter. Two utilities that set the same property raise `StyleSyntaxError`.
 
 ```python
-kh.layer(states, "fill-[pop/area] ramp-ylorrd scheme-q5 stroke-1 stroke-white null-gray-300")
+import kharita as kh
+
+kh.map(states, "fill-[pop/area] ramp-ylorrd scheme-q5 stroke-1 stroke-white", legend={"title": "People per km2"})
 ```
+
+## Functions
+
+| Function | Returns |
+| --- | --- |
+| `kh.map(gdf, style, legend=None, basemap=None, height=500)` | A `kh.Map`; shows itself in a notebook |
+| `kh.Map(basemap=None, height=500).add(gdf, style, legend=None)` | The same map, for several layers; `.to_html(path)` exports one HTML file |
+| `kh.layer(gdf, style)` | Native Lonboard layers, one per geometry type, for your own `lonboard.Map` |
+| `kh.legend(gdf, style, dark=False, **legend)` | The legend card as HTML |
+| `kh.bind(gdf, style)` | Colour and height arrays plus the `Scale` |
+| `kh.parse`, `kh.explain`, `kh.validate`, `kh.define`, `kh.help` | The style language tools |
+
+`legend=` takes `title`, `fmt` (such as `"{:,.0f}"`), `labels` (one per class) and `note`.
+
+Only the geometry and the columns named in the style are sent to the map. Data without a CRS is refused; other CRSs are reprojected. Rows without geometry are skipped with a warning.
 
 ## Colours
 
@@ -17,6 +34,7 @@ A colour is `<family>-<shade>` (22 families, shades 50 to 950), `white`, `black`
 | `fill-<colour>` | Constant fill | `fill-indigo-600/70` |
 | `stroke-<colour>` | Outline or line colour | `stroke-slate-300` |
 | `stroke-<n>` | Outline or line width in pixels | `stroke-2` |
+| `stroke-[<expr>]` | Line colour by data, for line layers | `stroke-[speed]` |
 | `size-<n>` | Point radius in pixels | `size-6` |
 | `opacity-<n>` | Whole-layer opacity, 0 to 100 | `opacity-80` |
 | `highlight-<colour>` | Colour of the feature under the mouse | `highlight-amber-400` |
@@ -74,7 +92,7 @@ kh.layer(states, "fill-[pop] scheme-q5", legend={"title": "Population", "fmt": "
 | | `preset-points`: `size-4 stroke-1 stroke-white highlight-amber-400` |
 | Your own named style | `kh.define("roads", "stroke-2 stroke-slate-400")`, then `preset-roads` |
 
-Explicit utilities always override a preset's, wherever they appear in the string: `preset-choropleth scheme-e4` uses equal intervals.
+Explicit utilities always override a preset's, wherever they appear in the string: `preset-choropleth scheme-e4` uses equal intervals. A preset's scheme also gives way to a categorical ramp you type and to text data, so `preset-choropleth fill-[region] ramp-set2` works.
 
 ## Hover and 3D
 

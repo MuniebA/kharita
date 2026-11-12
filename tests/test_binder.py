@@ -144,3 +144,7 @@ def test_negative_heights_are_flat(polygons):
 def test_not_a_dataframe():
     with pytest.raises(TypeError):
         kh.bind([1, 2, 3], "fill-red-500")
+
+
+def test_preset_scheme_yields_to_text_data(polygons):
+    assert kh.bind(polygons, "preset-choropleth fill-[region]").fill_scale.kind == "categorical"

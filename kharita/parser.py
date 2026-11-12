@@ -106,15 +106,25 @@ def _check(spec: StyleSpec, style: str) -> None:
         tok = spec.origins[group][0]
         raise StyleSyntaxError(message, tok.shown, tok.start, style)
 
-    if spec.fill_by is None:
+    if spec.fill_by is not None and spec.stroke_by is not None:
+        fail("stroke", "Only one colour can come from data; "
+                       "use fill-[...] or stroke-[...], not both.")
+    if spec.fill_by is None and spec.stroke_by is None:
         for group in ("ramp", "scheme"):
             if group in spec.origins and not spec.origins[group][0].via:
-                fail(group, f"'{spec.origins[group][0].text}' needs a data-bound fill like "
-                            "fill-[column].")
+                fail(group, f"'{spec.origins[group][0].text}' needs a data-bound colour like "
+                            "fill-[column] or stroke-[column].")
     if spec.extrude_max is not None and spec.extrude_by is None:
         fail("extrude_max", "extrude-max needs extrude-[column] to scale.")
     if spec.ramp and spec.scheme:
         kind = get_ramp(spec.ramp)["kind"]
+        clash = (kind == "categorical" and spec.scheme.kind != "categorical") or (
+            spec.scheme.kind == "diverging" and kind != "diverging")
+        if clash and spec.from_preset("scheme"):
+            # A preset's scheme yields to a ramp the user typed
+            spec.scheme = None
+            spec.origins.pop("scheme")
+            return
         if kind == "categorical" and spec.scheme.kind != "categorical":
             fail("ramp", f"ramp-{spec.ramp} is for categories; "
                          "use scheme-cat or a sequential ramp.")
@@ -204,8 +214,10 @@ def explain(style: str) -> Explanation:
     def src(group: str) -> str:
         return ", ".join(t.label for t in s.origins.get(group, [])) or "default"
 
-    if s.fill_by is not None:
-        rows.append(("fill", f"data: {s.fill_by}", src("fill")))
+    data_by = s.fill_by if s.fill_by is not None else s.stroke_by
+    if data_by is not None:
+        target = "fill" if s.fill_by is not None else "stroke"
+        rows.append((target, f"data: {data_by}", src(target)))
         ramp = f"{s.ramp}{' reversed' if s.ramp_reverse else ''}" if s.ramp else (
             f"{DEFAULT_NUMERIC[0]} for numbers, {DEFAULT_TEXT[0]} for text")
         rows.append(("ramp", ramp, src("ramp")))
@@ -214,6 +226,8 @@ def explain(style: str) -> Explanation:
         rows.append(("scheme", scheme, src("scheme")))
         rows.append(("null", _rgba(s.null) if s.null else DEFAULT_NULL, src("null")))
     elif s.fill is not None:
+        rows.append(("fill", _rgba(s.fill), src("fill")))
+    if s.fill is not None and data_by is not None:
         rows.append(("fill", _rgba(s.fill), src("fill")))
     if s.stroke is not None:
         rows.append(("stroke", _rgba(s.stroke), src("stroke")))
