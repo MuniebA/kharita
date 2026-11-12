@@ -79,3 +79,46 @@ def test_legend_helper(polygons):
     html = kh.legend(polygons, "fill-[pop] scheme-q3", title="Population", fmt="{:,.0f}")
     assert "Population" in html and "kharita-legend" in html
     assert kh.legend(polygons, "fill-red-500") == ""
+
+
+def test_gradient_legend_for_linear_scheme():
+    scale = numeric_scale([0, 5, 10, np.nan], Scheme("linear"))
+    html = legend_block(scale)
+    assert "linear-gradient(to right,#440154" in html
+    assert texts(html)[1:4] == ["0", "5", "10"]
+    assert "No data" in html
+
+
+def test_gradient_labels_and_fmt():
+    scale = numeric_scale([0, 1000, 2000], Scheme("linear"))
+    assert texts(legend_block(scale, fmt="{:,.0f}"))[1:4] == ["0", "1,000", "2,000"]
+    assert texts(legend_block(scale, labels=["Low", "High"]))[1:3] == ["Low", "High"]
+    with pytest.raises(ValueError, match="ticks"):
+        legend_block(scale, labels=["a", "b", "c", "d"])
+
+
+def test_bar_legend_shows_edges_not_counts():
+    scale = numeric_scale([1, 2, 3, 4, 5, 6], Scheme("equal", k=3))
+    html = legend_block(scale, style="bar")
+    assert html.count("flex:1;background") == 3
+    assert texts(html)[1:] == ["1.0", "2.7", "4.3", "6.0"]
+
+
+def test_bar_legend_refuses_categories_and_bad_styles():
+    cats = classify_categorical(np.array(["a", "b"], dtype=object), "set2", False, "c", NULL)[1]
+    with pytest.raises(ValueError, match="numeric classes"):
+        legend_block(cats, style="bar")
+    with pytest.raises(ValueError, match="style"):
+        legend_block(cats, style="pie")
+
+
+def test_height_block_and_frame_card():
+    from kharita.legend import THREE_D_NOTE, frame_card, height_block
+
+    html = height_block("pop", 2_500_000, 120_000)
+    assert "Height shows" in html and "2,500,000" in html and "120 km" in html
+    assert THREE_D_NOTE in html
+    assert "850 m" in height_block("h", 40, 850)
+    card = frame_card("Sudan <states>", "2008 census", "U.S. Census Bureau")
+    assert "Sudan &lt;states&gt;" in card and "Source: U.S. Census Bureau" in card
+    assert frame_card() == ""

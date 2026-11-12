@@ -14,14 +14,14 @@ kh.map(states, "fill-[pop/area] ramp-ylorrd scheme-q5 stroke-1 stroke-white", le
 
 | Function | Returns |
 | --- | --- |
-| `kh.map(gdf, style, legend=None, basemap=None, height=500)` | A `kh.Map`; shows itself in a notebook. `basemap=` takes any basemap name and overrides the style |
-| `kh.Map(basemap=None, height=500).add(gdf, style, legend=None)` | The same map, for several layers; `.to_html(path)` exports one HTML file |
+| `kh.map(gdf, style, legend=None, basemap=None, height=500, title=None, subtitle=None, source=None)` | A `kh.Map`; shows itself in a notebook. `basemap=` takes any basemap name and overrides the style; `title`, `subtitle` and `source` draw the title card top left |
+| `kh.Map(basemap=None, height=500, title=None, subtitle=None, source=None).add(gdf, style, legend=None)` | The same map, for several layers; `.to_html(path)` exports one HTML file |
 | `kh.layer(gdf, style)` | Native Lonboard layers, one per geometry type, for your own `lonboard.Map` |
 | `kh.legend(gdf, style, dark=False, **legend)` | The legend card as HTML |
 | `kh.bind(gdf, style)` | Colour and height arrays plus the `Scale` |
 | `kh.parse`, `kh.explain`, `kh.validate`, `kh.define`, `kh.help` | The style language tools |
 
-`legend=` takes `title`, `fmt` (such as `"{:,.0f}"`), `labels` (one per class) and `note`.
+`legend=` takes `title`, `fmt` (such as `"{:,.0f}"`), `labels` (one per class; for `scheme-linear`, two or three tick labels), `note`, and `style`: `"list"` (default, one row per class with counts) or `"bar"` (a compact bar with the class edges under it).
 
 Only the geometry and the columns named in the style are sent to the map. Data without a CRS is refused; other CRSs are reprojected. Rows without geometry are skipped with a warning.
 
@@ -49,6 +49,7 @@ A colour is `<family>-<shade>` (22 families, shades 50 to 950), `white`, `black`
 | `scheme-q<k>` | Quantiles, k classes (3 to 9) | `scheme-q5` |
 | `scheme-e<k>` | Equal interval, k classes | `scheme-e4` |
 | `scheme-[<b1>,<b2>,...]` | Explicit class breaks | `scheme-[10,50,100]` |
+| `scheme-linear` | No classes: colour runs smoothly from the lowest to the highest value, with a gradient legend | `scheme-linear` |
 | `scheme-cat` | Categorical, one colour per value | `scheme-cat` |
 | `scheme-div` | Diverging, centred on 0 | `scheme-div` |
 | `scheme-div-[<v>]` | Diverging, centred on a value | `scheme-div-[50]` |
@@ -68,6 +69,7 @@ A colour is `<family>-<shade>` (22 families, shades 50 to 950), `white`, `black`
 - Numbers stored as text are converted, with a warning. Dates are refused.
 - Whole-number columns with 12 or fewer distinct values warn that `scheme-cat` may be meant.
 - `extrude-[...]` scales the tallest feature to `extrude-max`, or to a tenth of the data's extent. Negative and missing values are drawn flat.
+- Extruded layers skip near-white ramp colours, which 3D lighting turns grey, and draw their edges a shade darker than the fill. The legend adds a height key that says what height shows and how tall the tallest feature is.
 
 ## Map and legend
 

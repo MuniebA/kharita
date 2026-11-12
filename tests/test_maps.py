@@ -154,3 +154,42 @@ def test_first_layer_settings_win(polygons):
 def test_terrain_export(polygons):
     page = kh.map(polygons, "fill-[pop] basemap-terrain").to_html()
     assert "data:application/json;base64," in page and "kharita-legend" in page
+
+
+def test_frame_card_in_notebook_and_export(polygons):
+    m = kh.map(polygons, "fill-[pop]", title="Sudan", subtitle="People", source="Census")
+    css, grid = m.widget().children
+    corners = [c for card in grid.children[1:] for c in card._dom_classes if c.startswith(
+        "kh-overlay-")]
+    assert sorted(corners) == ["kh-overlay-br", "kh-overlay-tl"]
+    page = m.to_html()
+    assert "kharita-frame" in page and "kh-fixed-tl" in page and "<title>Sudan</title>" in page
+
+
+def test_frame_and_top_left_legend_stack(polygons):
+    m = kh.map(polygons, "fill-[pop] legend-tl", title="Sudan")
+    panels = m._panels()
+    assert list(panels) == ["tl"]
+    assert panels["tl"].index("kharita-frame") < panels["tl"].index("kharita-legend")
+
+
+def test_no_frame_without_text(polygons):
+    m = kh.map(polygons, "fill-[pop]")
+    assert m.frame_html() == "" and list(m._panels()) == ["br"]
+
+
+def test_extruded_layers_get_a_height_key(polygons):
+    m = kh.map(polygons, "fill-[pop] extrude-[pop] extrude-max-1000")
+    html = m.legend_html()
+    assert "Height shows" in html and "drawn 1 km high" in html
+    # Height alone, with no colour by data, still gets a legend
+    alone = kh.map(polygons, "fill-teal-500 extrude-[pop]")
+    assert "Height shows" in alone.legend_html()
+
+
+def test_linear_and_bar_legends_through_map(polygons):
+    assert "linear-gradient" in kh.map(polygons, "fill-[pop] scheme-linear").legend_html()
+    bar = kh.map(polygons, "fill-[pop] scheme-q4", legend={"style": "bar"})
+    assert bar.legend_html().count("flex:1;background") == 4
+    with pytest.raises(ValueError, match="style"):
+        kh.map(polygons, "fill-[region]", legend={"style": "bar"})

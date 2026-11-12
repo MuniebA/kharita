@@ -1,6 +1,6 @@
 # Phase 5: Design system
 
-**Status:** in progress. Spike done 12 Nov 2026; first build (5b) 13 Nov 2026, 569 tests passing. This file is finished at the end of the phase.
+**Status:** in progress. Spike done 12 Nov 2026; 5b built 13 Nov 2026; 5c built 13 Nov 2026, 586 tests passing. 5d (colour system and map elements) is next. This file is finished at the end of the phase.
 
 ## Goal
 
@@ -54,15 +54,29 @@ pytest -q
 
 Then run `notebooks/00b_city_data.ipynb` once, and `notebooks/05b_city_and_relief.ipynb` top to bottom.
 
-## Still to build (5c)
+## City and relief check (`notebooks/05b_city_and_relief.ipynb`)
 
-- Map frame: `title=`, `subtitle=`, `source=` as an HTML card in the notebook and export
-- Gradient legend for continuous schemes; height key for extrusion; 3D legend note
-- Ramps `ice`, `ember`, `terrain`, checked for even lightness steps
-- Extruded layers skip the palest ramp stops
-- Open a Lonboard issue asking to expose `material`
+All 12 tests passed on central Khartoum: 10,706 roads and 71,223 buildings. Findings: extruded buildings showed white speckle (fixed in 5c); a pale square near Jebel Marra appears in every relief design and looks like a gap in the elevation tiles. Preferred looks: muted for city basemaps, `relief-tint` on neon.
+
+## What was built (5c)
+
+| Change | Where |
+| --- | --- |
+| Title card: `title=`, `subtitle=`, `source=` on `kh.map` and `kh.Map`, top left, stacked above a top-left legend; the exported page takes the title | `legend.py` `frame_card`, `maps.py` |
+| `scheme-linear`: unclassed colour along the ramp, with a gradient legend and low, middle, high ticks | `classify.py`, `registry.py`, `legend.py` |
+| `legend={"style": "bar"}`: classes as one bar with their edges underneath | `legend.py` |
+| Height key on extruded layers, with the 3D shading note | `legend.py` `height_block`, `maps.py` |
+| Extruded layers skip near-white ramp stops; strong colours such as viridis yellow are kept | `classify.py` `ramp_stops`, `binder.py` |
+| Extruded edges are the fill a shade darker, not white | `adapter.py` |
+| Draft Lonboard issue asking to expose `material` | `docs/drafts/lonboard-material-issue.md` |
+
+Moved to 5d: the `ice`, `ember` and `terrain` ramps, because 5d brings the full ramp catalogue, which already has an `ice` (cmocean).
+
+## Still to build (5d)
+
+Colour system and map elements: about 150 named ramps, friendly names, ramps from Tailwind shades, hex colours, category colours, `kh.palette`, `kh.theme`, element utilities (`water-`, `roads-`, `buildings-<colour>` and so on), `relief-steps`, `kh.colors()` and `kh.ramps()` browsers, and scheme checks. Full design in the Scenario plan tab of the project doc.
 
 ## Known issues
 
 - Glow lightens every layer on the map, not only the one that asked for it.
-- `extrude-max` scales the tallest feature, so true building heights need `extrude-max` set to the tallest height (see 05b cell F). A metres option is a candidate for 5c.
+- `extrude-max` scales the tallest feature, so true building heights need `extrude-max` set to the tallest height (see 05b cell F). A metres option is a candidate for 5d.

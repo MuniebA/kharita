@@ -30,6 +30,8 @@ class Scheme:
             return "breaks at " + ", ".join(f"{b:g}" for b in self.breaks)
         if self.kind == "diverging":
             return f"diverging around {self.center:g}"
+        if self.kind == "linear":
+            return "continuous"
         return "categorical"
 
 

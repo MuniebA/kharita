@@ -14,6 +14,10 @@ from kharita.spec import Scheme
 OTHER_HEX = "#9ca3af"
 DIVERGING_CLASSES = 7
 MAX_SEQUENTIAL_CATEGORIES = 12
+# Extruded layers drop near-white stops (bright and low in colour), up to this share of the ramp
+PALE_LUMINANCE = 0.85
+PALE_MIN_CHANNEL = 0.6
+MAX_TRIM_SHARE = 0.3
 
 
 @dataclass(frozen=True)
@@ -42,10 +46,38 @@ def _note(notes: list[str], message: str) -> None:
     warnings.warn(message, KharitaWarning, stacklevel=4)
 
 
-def ramp_colors(name: str, k: int, reverse: bool = False) -> list[str]:
+def luminance(hex_colour: str) -> float:
+    """Relative luminance from 0 (black) to 1 (white)."""
+    r, g, b, _ = hex_to_rgba(hex_colour)
+    return 0.2126 * r / 255 + 0.7152 * g / 255 + 0.0722 * b / 255
+
+
+def is_pale(hex_colour: str) -> bool:
+    """True for near-white colours that 3D lighting turns grey; strong yellows are not pale."""
+    r, g, b, _ = hex_to_rgba(hex_colour)
+    return luminance(hex_colour) > PALE_LUMINANCE and min(r, g, b) / 255 > PALE_MIN_CHANNEL
+
+
+def ramp_stops(name: str, reverse: bool = False, trim_pale: bool = False) -> list[str]:
+    """A ramp's stops in drawing order; trim_pale drops near-white stops from the light end."""
+    ramp = get_ramp(name)
+    stops = list(ramp["colors"][::-1] if reverse else ramp["colors"])
+    if trim_pale and ramp["kind"] == "sequential":
+        light_first = luminance(stops[0]) > luminance(stops[-1])
+        ordered = stops if light_first else stops[::-1]
+        cap = int(len(ordered) * MAX_TRIM_SHARE)
+        n = 0
+        while n < cap and is_pale(ordered[n]):
+            n += 1
+        ordered = ordered[n:]
+        stops = ordered if light_first else ordered[::-1]
+    return stops
+
+
+def ramp_colors(name: str, k: int, reverse: bool = False, trim_pale: bool = False) -> list[str]:
     # k colours from a ramp: sampled evenly for continuous ramps, taken in order for categorical
     ramp = get_ramp(name)
-    stops = ramp["colors"][::-1] if reverse else ramp["colors"]
+    stops = ramp_stops(name, reverse, trim_pale)
     if ramp["kind"] == "categorical":
         if k > len(stops):
             raise ValueError(f"ramp-{name} has only {len(stops)} colours, {k} needed.")
@@ -80,10 +112,31 @@ def _lut(hexes: list[str]) -> np.ndarray:
     return np.array([hex_to_rgba(h) for h in hexes], dtype=np.uint8)
 
 
+def _continuous(values, ok, lo, hi, ramp, reverse, trim_pale, label, null, notes, integral):
+    # Unclassed colour: each value placed on the ramp by where it sits between min and max
+    stops = ramp_stops(ramp, reverse, trim_pale)
+    lut = _lut(stops).astype(float)
+    pos = np.linspace(0.0, 1.0, len(stops))
+    t = np.clip((np.where(ok, values, lo) - lo) / (hi - lo), 0.0, 1.0)
+    out = np.empty((values.size, 4), dtype=np.uint8)
+    for ch in range(4):
+        out[:, ch] = np.round(np.interp(t, pos, lut[:, ch])).astype(np.uint8)
+    out[~ok] = null
+    ticks = np.array([lo, (lo + hi) / 2, hi])
+    d = _decimals(ticks, integral)
+    scale = Scale(
+        kind="continuous", label=label, scheme="continuous", colors=tuple(stops),
+        labels=tuple(fmt_number(x, d) for x in ticks), counts=(int(ok.sum()),),
+        edges=(lo, hi), null_count=int((~ok).sum()), null_color=null, notes=tuple(notes),
+    )
+    return out, scale
+
+
 def classify_numeric(
-    values: np.ndarray, scheme: Scheme, ramp: str, reverse: bool, label: str, null: RGBA
+    values: np.ndarray, scheme: Scheme, ramp: str, reverse: bool, label: str, null: RGBA,
+    trim_pale: bool = False,
 ) -> tuple[np.ndarray, Scale]:
-    """Colour numeric values by class; NaN gets the null colour."""
+    """Colour numeric values by class, or along the ramp for scheme-linear; NaN gets null."""
     ok = np.isfinite(values)
     finite = values[ok]
     notes: list[str] = []
@@ -95,10 +148,13 @@ def classify_numeric(
         edges = np.array([distinct[0], distinct[0]])
         classes = np.zeros(values.shape, dtype=np.int64)
         labels = [fmt_number(distinct[0], 0 if integral else 2)]
-        colors = ramp_colors(ramp, 1, reverse)
+        colors = ramp_colors(ramp, 1, reverse, trim_pale)
         return _finish(values, ok, classes, colors, labels, edges, None, scheme, label, null, notes)
 
     lo, hi = float(finite.min()), float(finite.max())
+    if scheme.kind == "linear":
+        return _continuous(values, ok, lo, hi, ramp, reverse, trim_pale, label, null, notes,
+                           integral)
     if scheme.kind == "quantiles":
         edges = np.unique(np.quantile(finite, np.linspace(0, 1, scheme.k + 1)))
         if edges.size - 1 < scheme.k:
@@ -138,7 +194,7 @@ def classify_numeric(
         labels += [f"{fmt_number(b[-1], d)} and over"]
     else:
         labels = [f"{fmt_number(edges[i], d)} to {fmt_number(edges[i + 1], d)}" for i in range(k)]
-    colors = ramp_colors(ramp, k, reverse)
+    colors = ramp_colors(ramp, k, reverse, trim_pale)
     return _finish(values, ok, classes, colors, labels, edges, None, scheme, label, null, notes)
 
 

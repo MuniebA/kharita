@@ -7,7 +7,7 @@ from pathlib import Path
 from kharita import basemaps as kb
 from kharita.adapter import build
 from kharita.errors import KharitaWarning
-from kharita.legend import LEGEND_OPTIONS, legend_block, legend_panel
+from kharita.legend import LEGEND_OPTIONS, frame_card, height_block, legend_block, legend_panel
 
 BASEMAPS = kb.BASEMAP_NAMES
 EXTRUDED_VIEW = {"pitch": 45, "bearing": -10}
@@ -44,7 +44,8 @@ NOTEBOOK_CORNERS = {
 class Map:
     """A kharita map: add layers with style strings, then show it or export it."""
 
-    def __init__(self, basemap: str | None = None, height: int | str = 500):
+    def __init__(self, basemap: str | None = None, height: int | str = 500, title=None,
+                 subtitle=None, source=None):
         if basemap is not None and basemap not in BASEMAPS:
             raise ValueError(f"basemap must be one of {', '.join(BASEMAPS)}, got '{basemap}'.")
         self.basemap = basemap
@@ -54,9 +55,10 @@ class Map:
         self.labels: bool | None = None
         self.glow = False
         self.height = height
+        self.title, self.subtitle, self.source = title, subtitle, source
         self.layers: list = []
         self.bounds: list = []
-        self._blocks: list[tuple[str, str]] = []
+        self._blocks: list[tuple] = []
         self._lonboard = None
 
     def add(self, gdf, style: str, legend: dict | None = None) -> "Map":
@@ -78,10 +80,11 @@ class Map:
         self.glow = self.glow or spec.glow
         self._check_basemap()
         scale = b.fill_scale or b.stroke_scale
-        if scale is not None and spec.legend:
-            # Build once now so a bad fmt or labels fails at add(), not at display
-            legend_block(scale, **options)
-            self._blocks.append((spec.legend_position or "br", (scale, options)))
+        if spec.legend and (scale is not None or b.elevation is not None):
+            if scale is not None:
+                # Build once now so a bad fmt, labels or style fails at add(), not at display
+                legend_block(scale, **options)
+            self._blocks.append((spec.legend_position or "br", b, options))
         self._lonboard = None
         return self
 
@@ -133,8 +136,34 @@ class Map:
 
     def legend_html(self) -> str:
         """The legend card for every layer that has one, or an empty string."""
-        blocks = [legend_block(scale, dark=self.dark, **opts) for _, (scale, opts) in self._blocks]
+        blocks = []
+        for _, b, opts in self._blocks:
+            scale = b.fill_scale or b.stroke_scale
+            if scale is not None:
+                blocks.append(legend_block(scale, dark=self.dark, **opts))
+            if b.elevation is not None:
+                expr = b.spec.extrude_by
+                same = scale is not None and str(expr) == str(b.spec.fill_by or b.spec.stroke_by)
+                label = opts.get("title") if scale is None and opts.get("title") else str(expr)
+                blocks.append(height_block(label, b.elevation_top, b.elevation_max,
+                                           fmt=opts.get("fmt") if same or scale is None else None,
+                                           dark=self.dark))
         return legend_panel(blocks, dark=self.dark) if blocks else ""
+
+    def frame_html(self) -> str:
+        """The title card, or an empty string when no title, subtitle or source is set."""
+        return frame_card(self.title, self.subtitle, self.source, dark=self.dark)
+
+    def _panels(self) -> dict[str, str]:
+        # HTML per corner: the frame top left, the legend in its corner, stacked when they meet
+        found: dict[str, list[str]] = {}
+        if frame := self.frame_html():
+            found["tl"] = [frame]
+        if legend := self.legend_html():
+            found.setdefault(self.legend_position, []).append(legend)
+        stack = '<div style="display:flex;flex-direction:column;gap:8px;align-items:flex-start">'
+        return {c: parts[0] if len(parts) == 1 else stack + "".join(parts) + "</div>"
+                for c, parts in found.items()}
 
     @property
     def lonboard(self):
@@ -169,20 +198,23 @@ class Map:
         import ipywidgets as w
 
         m = self.lonboard
-        legend = self.legend_html()
-        if not legend:
+        panels = self._panels()
+        if not panels:
             return m
-        valign, halign, margin = NOTEBOOK_CORNERS[self.legend_position]
-        css = w.HTML(
-            "<style>.kh-overlay{z-index:10;pointer-events:auto;"
-            f"align-self:{valign};justify-self:{halign};margin:{margin}}}</style>"
-        )
+        rules, cards = [], []
+        for corner, html in panels.items():
+            valign, halign, margin = NOTEBOOK_CORNERS[corner]
+            rules.append(f".kh-overlay-{corner}{{z-index:10;pointer-events:auto;"
+                         f"align-self:{valign};justify-self:{halign};margin:{margin}}}")
+            card = w.HTML(html, layout=w.Layout(grid_area="1 / 1 / 2 / 2", width="auto"))
+            card.add_class("kh-overlay")
+            card.add_class(f"kh-overlay-{corner}")
+            cards.append(card)
+        css = w.HTML(f"<style>{''.join(rules)}</style>")
         m.layout = w.Layout(grid_area="1 / 1 / 2 / 2")
-        card = w.HTML(legend, layout=w.Layout(grid_area="1 / 1 / 2 / 2", width="auto"))
-        card.add_class("kh-overlay")
         height = f"{self.height}px" if isinstance(self.height, int) else self.height
-        grid = w.GridBox([m, card], layout=w.Layout(grid_template_columns="1fr",
-                                                     grid_template_rows=height, width="100%"))
+        grid = w.GridBox([m, *cards], layout=w.Layout(grid_template_columns="1fr",
+                                                       grid_template_rows=height, width="100%"))
         return w.VBox([css, grid])
 
     def _ipython_display_(self) -> None:
@@ -190,31 +222,31 @@ class Map:
 
         display(self.widget())
 
-    def to_html(self, path: str | Path | None = None, title: str = "kharita map") -> str:
-        """A single HTML page with the map filling the window and the legend in its corner."""
+    def to_html(self, path: str | Path | None = None, title: str | None = None) -> str:
+        """A single HTML page with the map filling the window, title and legend in their corners."""
         m = self.lonboard
         previous = m.height
         m.height = "100vh"
         try:
-            page = m.to_html(title=title)
+            page = m.to_html(title=title or self.title or "kharita map")
         finally:
             m.height = previous
-        legend = self.legend_html()
-        css = "<style>body{margin:0}</style>"
-        if legend:
-            corner = EXPORT_CORNERS[self.legend_position]
-            css += f"<style>.kh-fixed{{position:fixed;z-index:1000;{corner}}}</style>"
-            legend = f'<div class="kh-fixed">{legend}</div>'
-        page = page.replace("</body>", f"{css}{legend}</body>", 1)
+        css = "body{margin:0}"
+        divs = ""
+        for corner, html in self._panels().items():
+            css += f".kh-fixed-{corner}{{position:fixed;z-index:1000;{EXPORT_CORNERS[corner]}}}"
+            divs += f'<div class="kh-fixed kh-fixed-{corner}">{html}</div>'
+        page = page.replace("</body>", f"<style>{css}</style>{divs}</body>", 1)
         if path is not None:
             Path(path).write_text(page, encoding="utf-8")
         return page
 
 
 def map(gdf, style: str, legend: dict | None = None, basemap: str | None = None,  # noqa: A001
-        height: int | str = 500) -> Map:
-    """One GeoDataFrame, one style, one map."""
-    return Map(basemap=basemap, height=height).add(gdf, style, legend=legend)
+        height: int | str = 500, title=None, subtitle=None, source=None) -> Map:
+    """One GeoDataFrame, one style, one map; title, subtitle and source draw the title card."""
+    return Map(basemap=basemap, height=height, title=title, subtitle=subtitle,
+               source=source).add(gdf, style, legend=legend)
 
 
 def legend(gdf, style: str, dark: bool = False, **options) -> str:

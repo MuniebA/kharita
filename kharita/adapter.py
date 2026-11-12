@@ -89,6 +89,21 @@ def _common(spec) -> dict:
     return kw
 
 
+EDGE_SHADE = 0.7
+
+
+def _edges(fill, spec) -> np.ndarray | list:
+    # Wireframe colour for extruded polygons: the fill a shade darker, never default white
+    if spec.stroke is not None:
+        return _rgba(spec.stroke)
+    if isinstance(fill, np.ndarray):
+        out = fill.copy()
+        out[:, :3] = (out[:, :3] * EDGE_SHADE).astype(np.uint8)
+        return out
+    r, g, b, a = fill
+    return [int(r * EDGE_SHADE), int(g * EDGE_SHADE), int(b * EDGE_SHADE), a]
+
+
 def _polygon_layer(sub, spec, b: Bound, rows):
     from lonboard import PolygonLayer
 
@@ -104,6 +119,8 @@ def _polygon_layer(sub, spec, b: Bound, rows):
     )
     if b.elevation is not None:
         kw.update(extruded=True, get_elevation=_pick(b.elevation, rows), wireframe=True)
+        if stroke is None:
+            kw["get_line_color"] = _edges(kw["get_fill_color"], spec)
     return PolygonLayer.from_geopandas(sub, **kw)
 
 

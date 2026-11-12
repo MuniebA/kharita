@@ -34,6 +34,7 @@ class Bound:
     stroke_scale: Scale | None = None
     elevation: np.ndarray | None = None
     elevation_max: float | None = None
+    elevation_top: float | None = None
 
 
 def _warn(message: str) -> None:
@@ -119,7 +120,9 @@ def _colour(spec: StyleSpec, data: pd.DataFrame, expr: Expr) -> tuple[np.ndarray
                            column=expr.column)
     themed = THEME_RAMPS.get(spec.theme, DEFAULT_NUMERIC[0])
     ramp = spec.ramp or ("rdbu" if scheme.kind == "diverging" else themed)
-    return classify_numeric(values, scheme, ramp, spec.ramp_reverse, label, null)
+    # 3D lighting greys out near-white colours, so extruded layers skip them
+    trim = spec.extrude_by is not None
+    return classify_numeric(values, scheme, ramp, spec.ramp_reverse, label, null, trim_pale=trim)
 
 
 def _default_height(data: pd.DataFrame) -> float:
@@ -143,8 +146,8 @@ def _default_height(data: pd.DataFrame) -> float:
     return side * DEFAULT_HEIGHT_SHARE if side > 0 else 1000.0
 
 
-def _elevation(spec: StyleSpec, data: pd.DataFrame) -> tuple[np.ndarray, float]:
-    # Heights in metres for extrude-[...], tallest equal to extrude-max or a default
+def _elevation(spec: StyleSpec, data: pd.DataFrame) -> tuple[np.ndarray, float, float]:
+    # Heights in metres, the tallest height, and the data value drawn that tall
     values, _ = evaluate(data, spec.extrude_by)
     if not np.isfinite(values).any():
         raise BindingError(f"[{spec.extrude_by}] has no values to extrude.",
@@ -156,8 +159,8 @@ def _elevation(spec: StyleSpec, data: pd.DataFrame) -> tuple[np.ndarray, float]:
     tallest = spec.extrude_max or _default_height(data)
     if top == 0:
         _warn(f"[{spec.extrude_by}] has no positive values; nothing is raised.")
-        return np.zeros(len(values), dtype=np.float32), tallest
-    return (clean / top * tallest).astype(np.float32), tallest
+        return np.zeros(len(values), dtype=np.float32), tallest, 0.0
+    return (clean / top * tallest).astype(np.float32), tallest, top
 
 
 def bind(data: pd.DataFrame, style) -> Bound:
@@ -170,7 +173,8 @@ def bind(data: pd.DataFrame, style) -> Bound:
                         else (None, None))
     stroke, stroke_scale = (_colour(spec, data, spec.stroke_by) if spec.stroke_by is not None
                             else (None, None))
-    elevation, tallest = (_elevation(spec, data) if spec.extrude_by is not None
-                          else (None, None))
+    elevation, tallest, top = (_elevation(spec, data) if spec.extrude_by is not None
+                               else (None, None, None))
     return Bound(spec=spec, n=len(data), fill=fill, fill_scale=fill_scale, stroke=stroke,
-                 stroke_scale=stroke_scale, elevation=elevation, elevation_max=tallest)
+                 stroke_scale=stroke_scale, elevation=elevation, elevation_max=tallest,
+                 elevation_top=top)

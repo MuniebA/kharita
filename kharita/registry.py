@@ -95,6 +95,8 @@ def _scheme(b, rest: str) -> None:
         b.set("scheme", scheme=Scheme("quantiles" if m.group(1) == "q" else "equal", k=k))
     elif rest == "cat":
         b.set("scheme", scheme=Scheme("categorical"))
+    elif rest == "linear":
+        b.set("scheme", scheme=Scheme("linear"))
     elif rest == "div":
         b.set("scheme", scheme=Scheme("diverging", center=0.0))
     elif rest.startswith("div-"):
@@ -106,8 +108,8 @@ def _scheme(b, rest: str) -> None:
         breaks = _numbers(_bracket(rest))
         b.set("scheme", scheme=Scheme("breaks", k=len(breaks) + 1, breaks=breaks))
     else:
-        raise ValueError("Use scheme-q5, scheme-e5, scheme-cat, scheme-div, scheme-div-[50] "
-                         "or scheme-[10,50,100].")
+        raise ValueError("Use scheme-q5, scheme-e5, scheme-linear, scheme-cat, scheme-div, "
+                         "scheme-div-[50] or scheme-[10,50,100].")
 
 
 def _null(b, rest: str) -> None:
@@ -200,10 +202,12 @@ UTILITIES: dict[str, Utility] = {
                 ("ramp-viridis", "ramp-viridis-r", "ramp-ylorrd", "ramp-set2"),
                 ("ramp-virdis", "ramp-rainbow"),
                 _ramp),
-        Utility("scheme", "scheme-q<k> | scheme-e<k> | scheme-[b1,b2] | scheme-cat | scheme-div",
-                "How data values are grouped into colour classes",
-                ("scheme-q5", "scheme-e4", "scheme-[10,50,100]", "scheme-cat", "scheme-div",
-                 "scheme-div-[50]"),
+        Utility("scheme",
+                "scheme-q<k> | scheme-e<k> | scheme-[b1,b2] | scheme-linear | scheme-cat "
+                "| scheme-div",
+                "How data values are grouped into colour classes, or scheme-linear for none",
+                ("scheme-q5", "scheme-e4", "scheme-[10,50,100]", "scheme-linear", "scheme-cat",
+                 "scheme-div", "scheme-div-[50]"),
                 ("scheme-q12", "scheme-q2", "scheme-[50,10]", "scheme-[a,b]", "scheme-jenks",
                  "scheme-div-[x]"),
                 _scheme),

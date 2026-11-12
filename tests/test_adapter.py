@@ -169,3 +169,18 @@ def test_halo_on_lines_and_points(lines, points):
     point_layers = kh.layer(points, "size-5 halo-amber-300")
     assert [type(x) for x in point_layers] == [ScatterplotLayer] * 3
     assert point_layers[0].get_radius == 5 + 9
+
+
+def test_extruded_edges_follow_the_fill(polygons):
+    (layer,) = kh.layer(polygons, "fill-[pop] extrude-[pop]")
+    fills, edges = colours(layer), colours(layer, "get_line_color")
+    assert all(e[0] <= f[0] and e[1] <= f[1] for f, e in zip(fills, edges, strict=True))
+    assert (255, 255, 255, 255) not in edges
+    (typed,) = kh.layer(polygons, "fill-[pop] stroke-black extrude-[pop]")
+    assert colours(typed, "get_line_color")[0] == (0, 0, 0, 255)
+
+
+def test_extruded_ramps_skip_near_white(polygons):
+    flat = kh.bind(polygons, "fill-[pop] ramp-ylorrd scheme-q4").fill_scale.colors
+    raised = kh.bind(polygons, "fill-[pop] ramp-ylorrd scheme-q4 extrude-[pop]").fill_scale.colors
+    assert flat[0] == "#ffffcc" and raised[0] != "#ffffcc"

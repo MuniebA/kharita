@@ -147,3 +147,30 @@ def test_million_rows_is_fast():
     out, _ = numeric(values, Scheme("quantiles", k=5))
     assert time.perf_counter() - t0 < 3
     assert out.shape == (1_000_000, 4)
+
+
+def test_linear_scheme_interpolates_between_ends():
+    out, scale = numeric([0, 5, 10, np.nan], Scheme("linear"))
+    assert scale.kind == "continuous" and scale.edges == (0.0, 10.0)
+    assert tuple(out[0]) == hex_to_rgba("#440154")
+    assert tuple(out[2]) == hex_to_rgba("#fde725")
+    assert tuple(out[3]) == NULL
+    assert scale.labels == ("0", "5", "10") and scale.counts == (3,)
+
+
+def test_linear_middle_value_sits_mid_ramp():
+    out, _ = numeric([0, 5, 10], Scheme("linear"))
+    assert tuple(out[1]) == hex_to_rgba("#21918c")
+
+
+def test_pale_stops_are_trimmed_only_when_asked():
+    from kharita.classify import is_pale, ramp_stops
+
+    assert not is_pale("#fde725") and is_pale("#ffffcc")
+    assert ramp_stops("viridis", trim_pale=True) == ramp_stops("viridis")
+    trimmed = ramp_stops("ylorrd", trim_pale=True)
+    assert "#ffffcc" not in trimmed and trimmed[-1] == ramp_stops("ylorrd")[-1]
+    # Reversed ramps lose the pale end too, now at the other side
+    assert "#ffffcc" not in ramp_stops("ylorrd", reverse=True, trim_pale=True)
+    # Diverging ramps keep their neutral middle
+    assert ramp_stops("rdbu", trim_pale=True) == ramp_stops("rdbu")

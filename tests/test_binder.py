@@ -148,3 +148,8 @@ def test_not_a_dataframe():
 
 def test_preset_scheme_yields_to_text_data(polygons):
     assert kh.bind(polygons, "preset-choropleth fill-[region]").fill_scale.kind == "categorical"
+
+
+def test_elevation_top_is_the_largest_value(polygons):
+    b = kh.bind(polygons, "extrude-[pop]")
+    assert b.elevation_top == pytest.approx(float(polygons["pop"].max()))
