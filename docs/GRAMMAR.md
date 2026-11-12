@@ -39,6 +39,18 @@ A colour is `<family>-<shade>` (22 families, shades 50 to 950), `white`, `black`
 
 **Defaults:** a numeric column gets `ramp-viridis scheme-q5`; a text column gets `ramp-set2 scheme-cat`. Categories beyond the ramp's colour count are grouped as "other". Division by zero is treated as missing.
 
+## How data is classified
+
+`kh.bind(gdf, style)` turns a style into colour and height arrays in the table's row order, plus a `Scale` (breaks, labels, colours, counts) the legend is drawn from.
+
+- Quantile ties reduce the number of classes, with a warning.
+- `scheme-div` always uses 7 classes, symmetric around the centre, with the middle class neutral.
+- Categories are ordered by frequency; beyond the ramp's colour count (12 for continuous ramps) the rest become "other".
+- Missing values, division by zero and infinities are shown as no data and counted in the legend.
+- Numbers stored as text are converted, with a warning. Dates are refused.
+- Whole-number columns with 12 or fewer distinct values warn that `scheme-cat` may be meant.
+- `extrude-[...]` scales the tallest feature to `extrude-max`, or to a tenth of the data's extent. Negative and missing values are drawn flat.
+
 ## Map and legend
 
 | Utility | Meaning | Example |

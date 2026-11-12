@@ -28,6 +28,10 @@ class StyleSyntaxError(KharitaError):
         super().__init__(message)
 
 
+class KharitaWarning(UserWarning):
+    """Something about the data that may make the map misleading."""
+
+
 class BindingError(KharitaError):
     """A style refers to data that is missing or unusable."""
 

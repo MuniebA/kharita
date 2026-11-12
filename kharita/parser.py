@@ -167,18 +167,23 @@ def validate(style: str, columns=None) -> StyleSpec:
     """Parse a style and, if columns are given, check every referenced column exists."""
     spec = parse(style)
     if columns is not None:
-        available = [str(c) for c in columns]
-        lower = {c.lower(): c for c in available}
-        for col in spec.columns:
-            if col in available:
-                continue
-            if col.lower() in lower:
-                hint = f" Did you mean '{lower[col.lower()]}'? Column names are case-sensitive."
-            else:
-                close = get_close_matches(col, available, n=3)
-                hint = f" Closest: {', '.join(close)}." if close else ""
-            raise BindingError(f"Column '{col}' is not in the data.{hint}", column=col)
+        check_columns(spec, columns)
     return spec
+
+
+def check_columns(spec: StyleSpec, columns) -> None:
+    # Raise BindingError for the first referenced column that is missing
+    available = [str(c) for c in columns]
+    lower = {c.lower(): c for c in available}
+    for col in spec.columns:
+        if col in available:
+            continue
+        if col.lower() in lower:
+            hint = f" Did you mean '{lower[col.lower()]}'? Column names are case-sensitive."
+        else:
+            close = get_close_matches(col, available, n=3)
+            hint = f" Closest: {', '.join(close)}." if close else ""
+        raise BindingError(f"Column '{col}' is not in the data.{hint}", column=col)
 
 
 class Explanation(str):
