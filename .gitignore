@@ -27,6 +27,3 @@ data/processed/sudan_*.gpkg
 # OS
 .DS_Store
 Thumbs.db
-
-
-!spike_out/theme_export.html
