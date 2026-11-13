@@ -2,7 +2,7 @@
 
 import base64
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from difflib import get_close_matches
 from urllib.parse import quote
 
@@ -29,7 +29,7 @@ HOSTED = {
     "dark": "https://tiles.openfreemap.org/styles/dark",
     "fiord": "https://tiles.openfreemap.org/styles/fiord",
 }
-RELIEFS = ("soft", "sharp", "tint")
+RELIEFS = ("soft", "sharp", "tint", "steps")
 BUILDINGS = ("flat", "3d", "none")
 # Elevation in metres for the hypsometric tint stops
 TINT_STOPS = (0, 300, 600, 1000, 1500, 2200, 3000)
@@ -82,6 +82,42 @@ THEMES = {
 ALIASES = {"terrain": ("paper", "tint")}
 BASEMAP_NAMES = (*HOSTED, *THEMES, *ALIASES, "none")
 DARK_BASEMAPS = frozenset({"dark", "fiord", *(n for n, t in THEMES.items() if t.dark)})
+# Which Theme field each element utility recolours, and which layers -none removes
+ELEMENT_FIELDS = {
+    "land": "background", "water": "water", "rivers": "water_line", "parks": "land",
+    "roads": "road_major", "streets": "road_minor", "buildings": "building",
+    "borders": "boundary", "admin": "boundary_minor", "labels": "label",
+}
+ELEMENT_LAYERS = {
+    "rivers": ("waterway",), "parks": ("park", "landcover"), "roads": ("road-major",),
+    "streets": ("road-minor",), "borders": ("boundary-country",), "admin": ("boundary-state",),
+}
+
+
+def basemap_names() -> tuple[str, ...]:
+    """Every basemap name, including themes added with kh.theme."""
+    return (*HOSTED, *THEMES, *ALIASES, "none")
+
+
+def is_dark(name: str) -> bool:
+    """True for basemaps with a dark ground, built in or added with kh.theme."""
+    theme, _ = resolve(name)
+    return name in ("dark", "fiord") or (theme in THEMES and THEMES[theme].dark)
+
+
+def css_color(c) -> str:
+    """An RGBA tuple as a MapLibre colour string."""
+    r, g, b, a = c
+    return f"#{r:02x}{g:02x}{b:02x}" if a == 255 else f"rgba({r},{g},{b},{a / 255:.3f})"
+
+
+def apply_elements(t: Theme, elements: dict) -> Theme:
+    """The theme with element colours replaced; hidden elements are dropped in style()."""
+    changes = {ELEMENT_FIELDS[k]: css_color(v) for k, v in elements.items() if v != "none"}
+    if "land" in elements and elements["land"] != "none" and t.halo == t.background:
+        # Label halos follow the ground so text stays crisp on the new colour
+        changes["halo"] = changes["background"]
+    return replace(t, **changes)
 
 
 def get_theme(name: str) -> Theme:
@@ -103,10 +139,25 @@ def _zoom(*stops: float) -> list:
     return ["interpolate", ["linear"], ["zoom"], *stops]
 
 
+def _steps(t: Theme) -> list:
+    # Flat colour bands: each band holds its colour until a hair below the next stop
+    stops: list = []
+    for i, (h, c) in enumerate(zip(TINT_STOPS, t.tint, strict=True)):
+        stops += [h, c]
+        if i + 1 < len(TINT_STOPS):
+            stops += [TINT_STOPS[i + 1] - 0.01, c]
+    return ["interpolate", ["linear"], ["elevation"], *stops]
+
+
 def _relief_layers(t: Theme, relief: str) -> list[dict]:
     # Shaded relief from the terrain source; strength eases off as you zoom in
     strength = _zoom(3, 0.6 if t.dark else 0.5, 8, 0.4, 13, 0.25)
     layers = []
+    if relief == "steps":
+        layers.append({"id": "relief-tint", "type": "color-relief", "source": "terrain",
+                       "paint": {"color-relief-color": _steps(t), "color-relief-opacity": 0.95}})
+        # A faint shade keeps the bands reading as terraces, not flat paint
+        strength = _zoom(3, 0.3, 13, 0.15)
     if relief == "tint":
         stops = [v for pair in zip(TINT_STOPS, t.tint, strict=True) for v in pair]
         layers.append({"id": "relief-tint", "type": "color-relief", "source": "terrain",
@@ -215,10 +266,14 @@ def _label_layers(t: Theme) -> list[dict]:
 
 
 def style(theme: str = "paper", labels: bool | None = None, hillshade: bool = False,
-          relief: str | None = None, buildings: str = "flat") -> dict:
+          relief: str | None = None, buildings: str = "flat", elements: dict | None = None) -> dict:
     """MapLibre style JSON for a theme; labels default to the theme's own setting."""
     name, alias_relief = resolve(theme)
-    t = get_theme(name)
+    elements = elements or {}
+    unknown = set(elements) - set(ELEMENT_FIELDS)
+    if unknown:
+        raise ValueError(f"Unknown map element {sorted(unknown)}; use {', '.join(ELEMENT_FIELDS)}.")
+    t = apply_elements(get_theme(name), elements)
     relief = relief or alias_relief or ("soft" if hillshade else None)
     if relief is not None and relief not in RELIEFS:
         raise ValueError(f"relief must be one of {', '.join(RELIEFS)}, got '{relief}'.")
@@ -240,7 +295,8 @@ def style(theme: str = "paper", labels: bool | None = None, hillshade: bool = Fa
     if show_labels:
         out["glyphs"] = OPENFREEMAP_GLYPHS
         layers.extend(_label_layers(t))
-    out["layers"] = layers
+    hidden = {lid for k, v in elements.items() if v == "none" for lid in ELEMENT_LAYERS.get(k, ())}
+    out["layers"] = [lyr for lyr in layers if lyr["id"] not in hidden]
     return out
 
 
@@ -275,8 +331,9 @@ def _theme_basemap_class():
 
 def basemap(theme: str = "paper", labels: bool | None = None, hillshade: bool = False,
             mode: str = "overlaid", encoding: str = "base64", relief: str | None = None,
-            buildings: str = "flat"):
+            buildings: str = "flat", elements: dict | None = None):
     """A Lonboard basemap drawing a kharita theme; encoding is base64, percent or object."""
-    s = style(theme, labels=labels, hillshade=hillshade, relief=relief, buildings=buildings)
+    s = style(theme, labels=labels, hillshade=hillshade, relief=relief, buildings=buildings,
+              elements=elements)
     value = s if encoding == "object" else data_url(s, encoding=encoding)
     return _theme_basemap_class()(style=value, mode=mode)

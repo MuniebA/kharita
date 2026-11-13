@@ -14,12 +14,16 @@ kh.map(states, "fill-[pop/area] ramp-ylorrd scheme-q5 stroke-1 stroke-white", le
 
 | Function | Returns |
 | --- | --- |
-| `kh.map(gdf, style, legend=None, basemap=None, height=500, title=None, subtitle=None, source=None)` | A `kh.Map`; shows itself in a notebook. `basemap=` takes any basemap name and overrides the style; `title`, `subtitle` and `source` draw the title card top left |
-| `kh.Map(basemap=None, height=500, title=None, subtitle=None, source=None).add(gdf, style, legend=None)` | The same map, for several layers; `.to_html(path)` exports one HTML file |
+| `kh.map(gdf, style, legend=None, basemap=None, height=500, title=None, subtitle=None, source=None, colors=None, order=None)` | A `kh.Map`; shows itself in a notebook. `basemap=` takes any basemap name and overrides the style; `title`, `subtitle` and `source` draw the title card top left; `colors` and `order` fix category colours |
+| `kh.Map(basemap=None, height=500, title=None, subtitle=None, source=None).add(gdf, style, legend=None, colors=None, order=None)` | The same map, for several layers; `.to_html(path)` exports one HTML file |
 | `kh.layer(gdf, style)` | Native Lonboard layers, one per geometry type, for your own `lonboard.Map` |
 | `kh.legend(gdf, style, dark=False, **legend)` | The legend card as HTML |
 | `kh.bind(gdf, style)` | Colour and height arrays plus the `Scale` |
 | `kh.parse`, `kh.explain`, `kh.validate`, `kh.define`, `kh.help` | The style language tools |
+| `kh.colors(family=None)`, `kh.ramps(kind=None, search=None, source=None)` | Every colour shade, or every ramp, as swatches in the notebook; `.names` lists them, `.to_html(path)` saves a page |
+| `kh.check_ramp(name)` | Whether a ramp's lightness steps are even and whether it is safe for colour-blind readers |
+| `kh.palette(name, colors, kind="sequential")` | Registers your own ramp as `ramp-<name>` |
+| `kh.theme(name, base="paper", ramp=None, **elements)` | Registers your own theme as `theme-<name>` and `basemap-<name>` |
 
 `legend=` takes `title`, `fmt` (such as `"{:,.0f}"`), `labels` (one per class; for `scheme-linear`, two or three tick labels), `note`, and `style`: `"list"` (default, one row per class with counts) or `"bar"` (a compact bar with the class edges under it).
 
@@ -27,7 +31,7 @@ Only the geometry and the columns named in the style are sent to the map. Data w
 
 ## Colours
 
-A colour is `<family>-<shade>` (22 families, shades 50 to 950), `white`, `black` or `transparent`, with an optional `/<opacity>` from 0 to 100.
+A colour is `<family>-<shade>` (22 families, shades 50 to 950), `white`, `black`, `transparent`, or any hex colour in brackets such as `[#0f766e]`, with an optional `/<opacity>` from 0 to 100. Run `kh.colors()` to see every shade.
 
 | Utility | Meaning | Example |
 | --- | --- | --- |
@@ -45,7 +49,7 @@ A colour is `<family>-<shade>` (22 families, shades 50 to 950), `white`, `black`
 | Utility | Meaning | Example |
 | --- | --- | --- |
 | `fill-[<expr>]` | Colour by data | `fill-[pop]` |
-| `ramp-<name>` | Ramp for the data (`-r` reverses) | `ramp-viridis-r` |
+| `ramp-<name>` | Ramp for the data (`-r` reverses); see Ramps below | `ramp-batlow-r` |
 | `scheme-q<k>` | Quantiles, k classes (3 to 9) | `scheme-q5` |
 | `scheme-e<k>` | Equal interval, k classes | `scheme-e4` |
 | `scheme-[<b1>,<b2>,...]` | Explicit class breaks | `scheme-[10,50,100]` |
@@ -56,7 +60,34 @@ A colour is `<family>-<shade>` (22 families, shades 50 to 950), `white`, `black`
 
 **Bracket expressions** allow only: a column (`[pop]`), a quoted column with odd characters (`['pop/km2']`), a ratio of two columns (`[pop/area]`), or a column times a number (`[pop*1000]`). Spaces in column names are fine: `[median income]`.
 
-**Defaults:** a numeric column gets `ramp-viridis scheme-q5`; a text column gets `ramp-set2 scheme-cat`. Categories beyond the ramp's colour count are grouped as "other". Division by zero is treated as missing.
+**Defaults:** a numeric column gets `ramp-viridis scheme-q5` (or its theme's ramp); a text column gets `ramp-set2 scheme-cat`. Categories beyond the ramp's colour count are grouped as "other". Division by zero is treated as missing.
+
+## Ramps
+
+About 160 ramps by name. Run `kh.ramps()` to see them all as swatches, `kh.ramps(kind="diverging")` or `kh.ramps(search="sun")` to narrow the list.
+
+| Collection | Examples | Licence |
+| --- | --- | --- |
+| ColorBrewer | `ylorrd`, `blues`, `rdbu`, `spectral`, `set2`, `paired` | Apache 2.0 |
+| matplotlib | `viridis`, `magma`, `plasma`, `inferno`, `cividis`, `turbo` | CC0, Turbo Apache 2.0 |
+| Crameri scientific | `batlow`, `oslo`, `lajolla`, `davos`, `vik`, `roma`, `berlin` | MIT |
+| cmocean | `thermal`, `haline`, `deep`, `ice`, `rain`, `balance`, `topo` | MIT |
+| CARTOColors | `sunset`, `emrld`, `burg`, `temps`, `prism`, `bold`, `safe`; CARTO's Teal is `carto-teal` | CC BY 4.0 |
+| Standards | `ipc` (food security phases 1 to 5), `worldcover` (ESA land cover codes), `landuse` | Fixed colours per value |
+| kharita | `terrain`, `ndvi`, `aurora`, `ember` | MIT |
+| Friendly names | `heatwave` (blue to red, same as `rdbu-r`), `ocean`, `forest`, `desert`, `hypsometric` | As their target |
+
+Build a ramp from Tailwind colours:
+
+| Ramp | Meaning | Example |
+| --- | --- | --- |
+| `ramp-<family>` | One family, shade 100 to 900 | `ramp-teal` |
+| `ramp-<family>-<family>` | Diverging: the first family dark to light, a neutral middle, the second light to dark | `ramp-teal-rose` |
+| `ramp-[<colour>,<colour>,...]` | Your own stops, blended evenly for numbers and used exactly, in order, for categories | `ramp-[sky-100,indigo-500,#4c1d95]` |
+
+Standard palettes (`ipc`, `worldcover`, `landuse`) give each value its fixed colour and label; other values become "other". For any categories, `colors={"mosque": "emerald-600"}` fixes chosen colours and `order=["hospital", "school"]` sets the legend order; the rest come from the ramp.
+
+Ramps with fewer stops than classes blend extra colours instead of repeating one.
 
 ## How data is classified
 
@@ -106,6 +137,7 @@ Every basemap is keyless. Three are hosted by OpenFreeMap and used as they are; 
 | --- | --- | --- |
 | `theme-<name>` | Basemap, default ramp and legend style together: `paper` (ylorrd), `midnight` (viridis), `mono` (blues), `neon` (plasma) | `theme-midnight` |
 | `relief-soft` | Shaded terrain, one light source | `relief-soft` |
+| `relief-steps` | Flat colour bands by height, like a layered model, with a faint shade | `relief-steps` |
 | `relief-sharp` | Shaded terrain lit from four directions; crisper ridges | `relief-sharp` |
 | `relief-tint` | Colour by elevation, with shading on top | `relief-tint` |
 | `buildings-flat`, `buildings-3d`, `buildings-none` | Basemap building footprints from zoom 13 (flat is the default) | `buildings-3d` |
@@ -113,8 +145,27 @@ Every basemap is keyless. Three are hosted by OpenFreeMap and used as they are; 
 | `halo-<colour>` | Two faint wide bands under outlines, lines or points; opacity scales both | `halo-cyan-300` |
 | `glow` | Colours add up where features overlap. Applies to the whole map; meant for dark basemaps | `glow` |
 
+**Map elements.** Every part of a kharita theme takes a colour, so a theme is only a set of defaults:
+
+| Element | Utility | Example |
+| --- | --- | --- |
+| Ground | `land-<colour>` | `land-stone-100` |
+| Sea and lakes | `water-<colour>` | `water-sky-200` |
+| Rivers and canals | `rivers-<colour>`, `rivers-none` | `rivers-sky-400` |
+| Parks and vegetation | `parks-<colour>`, `parks-none` | `parks-emerald-100` |
+| Major roads | `roads-<colour>`, `roads-none` | `roads-amber-200` |
+| Minor streets | `streets-<colour>`, `streets-none` | `streets-stone-200` |
+| Buildings | `buildings-<colour>` | `buildings-amber-100` |
+| Country borders | `borders-<colour>`, `borders-none` | `borders-slate-500` |
+| State borders | `admin-<colour>`, `admin-none` | `admin-slate-300` |
+| Place and street names | `labels-<colour>` | `labels-slate-700` |
+
+Save a set of them as your own theme with `kh.theme("desert", base="paper", land="[#f3e5c8]", water="sky-200", ramp="lajolla")`, then write `theme-desert`.
+
+A warning fires when a class colour is almost the basemap's ground colour, since those features would vanish.
+
 - On a theme with labels, your layers are drawn under the place names, so labels stay readable over the data.
-- `relief-*`, `buildings-*` and `labels-none` need a theme; with no basemap set they pick `paper`. On `basemap-light`, `dark` or `fiord` they raise an error.
+- `relief-*`, `buildings-*`, `labels-*` and the element utilities need a kharita theme; with no basemap set they pick `paper`. On `basemap-light`, `dark` or `fiord` they raise an error.
 - A typed `ramp-` always beats the theme's default ramp. In a map with several layers, the first layer to set the basemap, theme, relief, buildings or labels wins.
 - Elevation comes from the Mapzen Terrain Tiles on AWS Open Data; place data from OpenStreetMap via OpenFreeMap. Both credits appear on the map.
 

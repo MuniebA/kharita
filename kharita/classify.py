@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 from kharita.errors import KharitaWarning
-from kharita.palette import RGBA, get_ramp, hex_to_rgba
+from kharita.palette import RGBA, blend, get_ramp, hex_to_rgba, parse_color, rgba_to_hex
 from kharita.spec import Scheme
 
 OTHER_HEX = "#9ca3af"
@@ -84,6 +84,9 @@ def ramp_colors(name: str, k: int, reverse: bool = False, trim_pale: bool = Fals
         return list(stops[:k])
     if k == 1:
         return [stops[len(stops) // 2]]
+    if k > len(stops):
+        # Short published ramps blend extra colours instead of repeating stops
+        return blend(stops, k)
     idx = np.linspace(0, len(stops) - 1, k).round().astype(int)
     return [stops[i] for i in idx]
 
@@ -199,46 +202,88 @@ def classify_numeric(
 
 
 def classify_categorical(
-    values, ramp: str, reverse: bool, label: str, null: RGBA
+    values, ramp: str, reverse: bool, label: str, null: RGBA, colors: dict | None = None,
+    order: list | None = None,
 ) -> tuple[np.ndarray, Scale]:
-    """Colour values by category, most frequent first; extras become 'other'."""
+    """Colour values by category; fixed colours and order first, then the most frequent."""
     s = pd.Series(values, copy=False)
     missing = s.isna().to_numpy()
-    counts = s[~missing].value_counts()
-    order = sorted(counts.index, key=lambda c: (-counts[c], str(c)))
+    keys = np.array([_category_label(v) if not m else "" for v, m in zip(s, missing, strict=True)],
+                    dtype=object)
+    counts = pd.Series(keys[~missing]).value_counts()
     notes: list[str] = []
+    record = get_ramp(ramp)
 
-    ramp_kind = get_ramp(ramp)["kind"]
-    if ramp_kind == "categorical":
-        room = len(get_ramp(ramp)["colors"])
+    # Standard palettes such as ipc fix a colour and label to each value
+    fixed = {k["value"]: k["color"] for k in record.get("keys", ())}
+    names = {k["value"]: k["label"] for k in record.get("keys", ())}
+    fixed.update({str(k): v for k, v in (colors or {}).items()})
+    order = [str(x) for x in order] if order is not None else [k["value"] for k in
+                                                                record.get("keys", ())]
+    for k in [*(colors or {}), *order]:
+        if str(k) not in counts.index and str(k) not in names:
+            _note(notes, f"{label} has no value '{k}'; its colour or position is not used.")
+
+    by_freq = sorted(counts.index, key=lambda c: (-counts[c], c))
+    seen = [k for k in dict.fromkeys(order) if k in counts.index]
+    ranked = seen + [k for k in by_freq if k not in seen]
+    if record.get("keys"):
+        # Values outside a standard palette are grouped, never given an invented colour
+        kept = [k for k in ranked if k in fixed]
     else:
-        room = MAX_SEQUENTIAL_CATEGORIES
-    if len(order) > room:
-        kept = order[: room - 1]
-        _note(notes, f"{label} has {len(order)} categories; the {len(order) - len(kept)} "
-                     "least common are grouped as 'other'.")
+        room = (len(record.get("given", record["colors"])) if record["kind"] == "categorical"
+                or "given" in record else MAX_SEQUENTIAL_CATEGORIES)
+        free = [k for k in ranked if k not in fixed]
+        room_free = max(room, 1)
+        if len(free) > room_free:
+            spare = room_free - 1
+            kept_free = free[:spare]
+        else:
+            kept_free = free
+        kept = [k for k in ranked if k in fixed or k in kept_free]
+    dropped = [k for k in ranked if k not in kept]
+    if dropped:
+        _note(notes, f"{label} has {len(ranked)} categories; the {len(dropped)} least common "
+                     "are grouped as 'other'.")
+
+    free_kept = [k for k in kept if k not in fixed]
+    if "given" in record:
+        palette = (record["given"][::-1] if reverse else record["given"])
+        if len(free_kept) > len(palette):
+            palette = (palette * (len(free_kept) // len(palette) + 1))
+        auto = list(palette[: len(free_kept)])
     else:
-        kept = order
-    colors = ramp_colors(ramp, len(kept), reverse)
-    codes = pd.Categorical(s, categories=kept).codes.astype(np.int64)
-    labels = [_category_label(c) for c in kept]
-    cat_counts = [int(counts[c]) for c in kept]
-    other = len(order) > len(kept)
-    if other:
-        codes[(codes == -1) & ~missing] = len(kept)
-        colors = colors + [OTHER_HEX]
+        auto = ramp_colors(ramp, len(free_kept), reverse) if free_kept else []
+    auto_iter = iter(auto)
+    hexes = [_hex(fixed[k]) if k in fixed else next(auto_iter) for k in kept]
+    labels = [names.get(k, k) for k in kept]
+    cat_counts = [int(counts[k]) for k in kept]
+    if dropped:
+        hexes.append(OTHER_HEX)
         labels.append("other")
-        cat_counts.append(int(counts[order[len(kept):]].sum()))
+        cat_counts.append(int(counts[dropped].sum()))
 
-    lut = _lut(colors)
-    out = lut[np.clip(codes, 0, len(colors) - 1)]
+    index = {k: i for i, k in enumerate(kept)}
+    other = len(kept)
+    codes = np.array([index.get(k, other) for k in keys], dtype=np.int64)
+    lut = _lut(hexes) if hexes else np.zeros((1, 4), dtype=np.uint8)
+    out = lut[np.clip(codes, 0, max(len(hexes) - 1, 0))]
     out[missing] = null
     scale = Scale(
-        kind="categorical", label=label, scheme="categorical", colors=tuple(colors),
+        kind="categorical", label=label, scheme="categorical", colors=tuple(hexes),
         labels=tuple(labels), counts=tuple(cat_counts), categories=tuple(kept),
         null_count=int(missing.sum()), null_color=null, notes=tuple(notes),
     )
     return out, scale
+
+
+def _hex(color) -> str:
+    # A fixed colour from colors= or a palette: Tailwind name, hex, or RGBA tuple
+    if isinstance(color, tuple):
+        return rgba_to_hex(color)
+    if isinstance(color, str) and color.startswith("#") and len(color) in (4, 7):
+        return color.lower()
+    return rgba_to_hex(parse_color(str(color)))
 
 
 def _category_label(value) -> str:

@@ -24,6 +24,8 @@ GLOW = {
 }
 # Map-wide settings a layer's style can set; the first layer to set one wins
 MAP_SETTINGS = ("theme", "relief", "buildings", "labels")
+# Below this CIE76 distance a class colour reads as the basemap ground
+GROUND_DELTA = 6.0
 
 # Fixed corners for exported pages; bottom corners clear attribution, scale bar and buttons
 EXPORT_CORNERS = {
@@ -54,6 +56,7 @@ class Map:
         self.buildings: str | None = None
         self.labels: bool | None = None
         self.glow = False
+        self.elements: dict = {}
         self.height = height
         self.title, self.subtitle, self.source = title, subtitle, source
         self.layers: list = []
@@ -61,14 +64,15 @@ class Map:
         self._blocks: list[tuple] = []
         self._lonboard = None
 
-    def add(self, gdf, style: str, legend: dict | None = None) -> "Map":
-        """Add a GeoDataFrame drawn with a style; legend takes title, fmt, labels and note."""
+    def add(self, gdf, style: str, legend: dict | None = None, colors: dict | None = None,
+            order: list | None = None) -> "Map":
+        """Add a GeoDataFrame drawn with a style; colors and order fix category colours."""
         options = dict(legend or {})
         unknown = set(options) - LEGEND_OPTIONS
         if unknown:
             raise ValueError(f"Unknown legend option {sorted(unknown)}; use "
                              f"{', '.join(sorted(LEGEND_OPTIONS))}.")
-        layers, b = build(gdf, style)
+        layers, b = build(gdf, style, colors=colors, order=order)
         self.layers.extend(layers)
         self.bounds.append(b)
         spec = b.spec
@@ -78,6 +82,8 @@ class Map:
             if getattr(self, name) is None and getattr(spec, name) is not None:
                 setattr(self, name, getattr(spec, name))
         self.glow = self.glow or spec.glow
+        for name, value in spec.elements.items():
+            self.elements.setdefault(name, value)
         self._check_basemap()
         scale = b.fill_scale or b.stroke_scale
         if spec.legend and (scale is not None or b.elevation is not None):
@@ -106,13 +112,40 @@ class Map:
         # relief, buildings and labels-none only work on a basemap kharita builds
         asked = [n for n in ("relief", "buildings") if getattr(self, n)]
         asked += ["labels"] if self.labels is False else []
+        asked += [f"{n}-" for n in self.elements]
         if asked and not self.themed:
             raise ValueError(f"{', '.join(asked)} need a kharita basemap (paper, midnight, mono, "
                              f"neon, muted or terrain), not basemap-{self.basemap_name}.")
 
     @property
     def dark(self) -> bool:
-        return self.basemap_name in kb.DARK_BASEMAPS
+        return kb.is_dark(self.basemap_name)
+
+    def _check_ground(self) -> None:
+        # Warn when a class colour almost matches the theme's ground, so it would vanish
+        from kharita.catalog import delta_e
+
+        if not self.themed:
+            return
+        theme, _ = kb.resolve(self.basemap_name)
+        ground = self.elements.get("land")
+        ground = kb.css_color(ground) if ground else kb.get_theme(theme).background
+        if not ground.startswith("#"):
+            return
+        for b in self.bounds:
+            scale = b.fill_scale or b.stroke_scale
+            if scale is None:
+                continue
+            # A diverging scale's neutral middle is meant to sit close to the ground
+            middle = scale.k // 2 if scale.scheme.startswith("diverging") else None
+            close = [lab for i, (c, lab) in enumerate(zip(scale.colors, scale.labels,
+                                                         strict=False))
+                     if i != middle and delta_e(c, ground) < GROUND_DELTA]
+            if close:
+                warnings.warn(f"The colour for {close[0]!r} in [{scale.label}] is almost the "
+                              f"basemap's ground colour, so those features may vanish; try "
+                              "another ramp or a darker land- colour.", KharitaWarning,
+                              stacklevel=4)
 
     def _basemap(self):
         # Lonboard basemap, and whether kharita layers sit under its labels
@@ -126,7 +159,7 @@ class Map:
         theme, alias_relief = kb.resolve(name)
         shown = kb.get_theme(theme).labels if self.labels is None else self.labels
         bm = kb.basemap(theme, labels=self.labels, relief=self.relief or alias_relief,
-                        buildings=self.buildings or "flat",
+                        buildings=self.buildings or "flat", elements=self.elements,
                         mode="interleaved" if shown else "overlaid")
         return bm, shown
 
@@ -174,6 +207,7 @@ class Map:
             if not self.layers:
                 raise ValueError("The map has no layers; call add() first.")
             tooltip = any(b.spec.tooltip for b in self.bounds)
+            self._check_ground()
             bm, under_labels = self._basemap()
             for lyr in self.layers:
                 # Interleaved layers draw below the first label so place names stay on top
@@ -243,17 +277,19 @@ class Map:
 
 
 def map(gdf, style: str, legend: dict | None = None, basemap: str | None = None,  # noqa: A001
-        height: int | str = 500, title=None, subtitle=None, source=None) -> Map:
+        height: int | str = 500, title=None, subtitle=None, source=None,
+        colors: dict | None = None, order: list | None = None) -> Map:
     """One GeoDataFrame, one style, one map; title, subtitle and source draw the title card."""
     return Map(basemap=basemap, height=height, title=title, subtitle=subtitle,
-               source=source).add(gdf, style, legend=legend)
+               source=source).add(gdf, style, legend=legend, colors=colors, order=order)
 
 
-def legend(gdf, style: str, dark: bool = False, **options) -> str:
+def legend(gdf, style: str, dark: bool = False, colors: dict | None = None,
+           order: list | None = None, **options) -> str:
     """The legend HTML for a style on its own, for use with your own Lonboard map."""
     from kharita.binder import bind
 
-    b = bind(gdf, style)
+    b = bind(gdf, style, colors=colors, order=order)
     scale = b.fill_scale or b.stroke_scale
     if scale is None:
         return ""

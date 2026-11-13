@@ -87,7 +87,8 @@ def evaluate(data: pd.DataFrame, expr: Expr) -> tuple[np.ndarray, bool]:
     return values, True
 
 
-def _colour(spec: StyleSpec, data: pd.DataFrame, expr: Expr) -> tuple[np.ndarray, Scale]:
+def _colour(spec: StyleSpec, data: pd.DataFrame, expr: Expr, colors: dict | None = None,
+            order: list | None = None) -> tuple[np.ndarray, Scale]:
     # Colour array and scale for fill-[...] or stroke-[...]
     label = str(expr)
     values, numeric = evaluate(data, expr)
@@ -114,7 +115,11 @@ def _colour(spec: StyleSpec, data: pd.DataFrame, expr: Expr) -> tuple[np.ndarray
 
     if scheme.kind == "categorical":
         ramp = spec.ramp or DEFAULT_TEXT[0]
-        return classify_categorical(values, ramp, spec.ramp_reverse, label, null)
+        return classify_categorical(values, ramp, spec.ramp_reverse, label, null, colors=colors,
+                                    order=order)
+    if colors or order:
+        raise BindingError(f"colors= and order= set colours for categories, but [{label}] is "
+                           f"classed as numbers; add scheme-cat.", column=expr.column)
     if not numeric:
         raise BindingError(f"[{label}] is text, so it cannot use {scheme}; use scheme-cat.",
                            column=expr.column)
@@ -163,15 +168,16 @@ def _elevation(spec: StyleSpec, data: pd.DataFrame) -> tuple[np.ndarray, float, 
     return (clean / top * tallest).astype(np.float32), tallest, top
 
 
-def bind(data: pd.DataFrame, style) -> Bound:
-    """Compile a style against a table: colour and height arrays in the table's row order."""
+def bind(data: pd.DataFrame, style, colors: dict | None = None, order: list | None = None) -> Bound:
+    """Compile a style against a table; colors and order fix category colours and their order."""
     if not isinstance(data, pd.DataFrame):
         raise TypeError(f"Expected a GeoDataFrame or DataFrame, got {type(data).__name__}.")
     spec = parse(style) if isinstance(style, str) else style
     check_columns(spec, data.columns)
-    fill, fill_scale = (_colour(spec, data, spec.fill_by) if spec.fill_by is not None
+    fill, fill_scale = (_colour(spec, data, spec.fill_by, colors, order) if spec.fill_by is not None
                         else (None, None))
-    stroke, stroke_scale = (_colour(spec, data, spec.stroke_by) if spec.stroke_by is not None
+    stroke, stroke_scale = (_colour(spec, data, spec.stroke_by, colors, order)
+                            if spec.stroke_by is not None
                             else (None, None))
     elevation, tallest, top = (_elevation(spec, data) if spec.extrude_by is not None
                                else (None, None, None))

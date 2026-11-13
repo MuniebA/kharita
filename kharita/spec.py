@@ -9,8 +9,13 @@ from kharita.tokenizer import Token
 DEFAULT_NULL = "gray-300"
 DEFAULT_NUMERIC = ("viridis", "q5")
 DEFAULT_TEXT = ("set2", "cat")
-# Default numeric ramp each theme gives data it colours
+# Default numeric ramp each theme gives data it colours; kh.theme adds more
 THEME_RAMPS = {"paper": "ylorrd", "midnight": "viridis", "mono": "blues", "neon": "plasma"}
+# Map elements a style can recolour, in the order kh.help lists them
+ELEMENTS = ("land", "water", "rivers", "parks", "roads", "streets", "buildings", "borders",
+            "admin", "labels")
+# Elements that can be switched off with <element>-none
+HIDEABLE = ("rivers", "parks", "roads", "streets", "borders", "admin")
 LEGEND_POSITIONS = {"tl": "top left", "tr": "top right", "bl": "bottom left", "br": "bottom right"}
 
 
@@ -59,6 +64,7 @@ class StyleSpec:
     labels: bool | None = None
     halo: RGBA | None = None
     glow: bool = False
+    elements: dict = field(default_factory=dict)
     legend: bool = True
     legend_position: str | None = None
     origins: dict[str, list[Token]] = field(default_factory=dict, repr=False)

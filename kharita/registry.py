@@ -4,10 +4,10 @@ import re
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from kharita.basemaps import BASEMAP_NAMES, BUILDINGS, RELIEFS
+from kharita.basemaps import BUILDINGS, RELIEFS, basemap_names
 from kharita.expr import is_number, parse_columns, parse_expr
 from kharita.palette import get_ramp, parse_color
-from kharita.spec import LEGEND_POSITIONS, THEME_RAMPS, Scheme
+from kharita.spec import ELEMENTS, HIDEABLE, LEGEND_POSITIONS, THEME_RAMPS, Scheme
 
 
 @dataclass(frozen=True)
@@ -52,14 +52,14 @@ def _numbers(text: str) -> tuple[float, ...]:
 
 
 def _fill(b, rest: str) -> None:
-    if rest.startswith("["):
+    if rest.startswith("[") and not rest.startswith("[#"):
         b.set("fill", fill_by=parse_expr(_bracket(rest)))
     else:
         b.set("fill", fill=parse_color(rest))
 
 
 def _stroke(b, rest: str) -> None:
-    if rest.startswith("["):
+    if rest.startswith("[") and not rest.startswith("[#"):
         b.set("stroke", stroke_by=parse_expr(_bracket(rest)))
     elif is_number(rest):
         b.set("stroke_width", stroke_width=_positive(rest, "Stroke width"))
@@ -128,7 +128,7 @@ def _one_of(rest: str, options, what: str) -> str:
 
 
 def _basemap(b, rest: str) -> None:
-    b.set("basemap", basemap=_one_of(rest, BASEMAP_NAMES, "Basemap"))
+    b.set("basemap", basemap=_one_of(rest, basemap_names(), "Basemap"))
 
 
 def _theme(b, rest: str) -> None:
@@ -139,13 +139,38 @@ def _relief(b, rest: str) -> None:
     b.set("relief", relief=_one_of(rest, RELIEFS, "Relief"))
 
 
+def _element(b, name: str, rest: str) -> None:
+    # A map element's colour, or none to hide it
+    if rest == "none":
+        if name not in HIDEABLE:
+            raise ValueError(f"{name} cannot be hidden; give it a colour instead.")
+        value = "none"
+    else:
+        value = parse_color(rest)
+    b.set(f"element_{name}", elements={**b.spec.elements, name: value})
+
+
 def _buildings(b, rest: str) -> None:
-    b.set("buildings", buildings=_one_of(rest, BUILDINGS, "Buildings"))
+    if rest in BUILDINGS:
+        b.set("buildings", buildings=rest)
+    else:
+        try:
+            _element(b, "buildings", rest)
+        except ValueError:
+            raise ValueError(f"Use buildings-flat, buildings-3d, buildings-none or a colour like "
+                             f"buildings-amber-100, got '{rest}'.") from None
 
 
 def _labels(b, rest: str) -> None:
-    _one_of(rest, ("none",), "Labels")
-    b.set("labels", labels=False)
+    if rest == "none":
+        b.set("labels", labels=False)
+    else:
+        _element(b, "labels", rest)
+
+
+def _element_handler(name: str):
+    # Handler for land-, water-, roads- and the other element utilities
+    return lambda b, rest: _element(b, name, rest)
 
 
 def _halo(b, rest: str) -> None:
@@ -177,6 +202,16 @@ def _extrude(b, rest: str) -> None:
     else:
         b.set("extrude", extrude_by=parse_expr(_bracket(rest)))
 
+
+ELEMENT_TEXT = {
+    "land": "ground", "water": "sea and lakes", "rivers": "rivers and canals",
+    "parks": "parks and vegetation", "roads": "major roads", "streets": "minor streets",
+    "borders": "country borders", "admin": "state and province borders",
+}
+ELEMENT_EXAMPLE = {
+    "land": "stone-100", "water": "sky-200", "rivers": "sky-400", "parks": "emerald-100",
+    "roads": "amber-200", "streets": "stone-200", "borders": "slate-500", "admin": "slate-300",
+}
 
 UTILITIES: dict[str, Utility] = {
     u.name: u
@@ -225,15 +260,24 @@ UTILITIES: dict[str, Utility] = {
                 "Basemap, default ramp and legend style together",
                 ("theme-paper", "theme-midnight", "theme-mono", "theme-neon"), ("theme-blue",),
                 _theme),
-        Utility("relief", "relief-soft | relief-sharp | relief-tint",
+        Utility("relief", "relief-soft | relief-sharp | relief-tint | relief-steps",
                 "Shaded terrain under a kharita basemap",
-                ("relief-soft", "relief-sharp", "relief-tint"), ("relief-3d",), _relief),
-        Utility("buildings", "buildings-flat | buildings-3d | buildings-none",
-                "Basemap building footprints from zoom 13",
-                ("buildings-flat", "buildings-3d", "buildings-none"), ("buildings-tall",),
-                _buildings),
-        Utility("labels", "labels-none", "Hide the place labels of a kharita basemap",
-                ("labels-none",), ("labels-big",), _labels),
+                ("relief-soft", "relief-sharp", "relief-tint", "relief-steps"), ("relief-3d",),
+                _relief),
+        *(Utility(name, f"{name}-<colour>" + (f" | {name}-none" if name in HIDEABLE else ""),
+                  f"Colour of the basemap's {ELEMENT_TEXT[name]}"
+                  + (", or none to hide it" if name in HIDEABLE else ""),
+                  (f"{name}-{ELEMENT_EXAMPLE[name]}", f"{name}-[#d4d4d8]")
+                  + ((f"{name}-none",) if name in HIDEABLE else ()),
+                  (f"{name}-blue",), _element_handler(name))
+          for name in ELEMENTS if name not in ("buildings", "labels")),
+        Utility("buildings", "buildings-flat | buildings-3d | buildings-none | buildings-<colour>",
+                "Basemap building footprints from zoom 13, and their colour",
+                ("buildings-flat", "buildings-3d", "buildings-none", "buildings-amber-100"),
+                ("buildings-tall",), _buildings),
+        Utility("labels", "labels-none | labels-<colour>",
+                "Hide or recolour the place labels of a kharita basemap",
+                ("labels-none", "labels-slate-700"), ("labels-big",), _labels),
         Utility("halo", "halo-<colour>", "A soft glow around outlines, lines or points",
                 ("halo-cyan-300", "halo-white/60"), ("halo-cyan",), _halo),
         Utility("glow", "glow", "Colours add up where features overlap; for dark basemaps",

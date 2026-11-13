@@ -190,10 +190,10 @@ BUILDERS = (("polygons", POLYGONS, _polygon_layer), ("lines", LINES, _line_layer
             ("points", POINTS, _point_layer))
 
 
-def build(gdf, style) -> tuple[list, Bound]:
+def build(gdf, style, colors: dict | None = None, order: list | None = None) -> tuple[list, Bound]:
     """Lonboard layers for a GeoDataFrame and a style, plus the bound arrays and scales."""
     check_geodata(gdf)
-    b = bind(gdf, style)
+    b = bind(gdf, style, colors=colors, order=order)
     spec = b.spec
     geom = gdf.geometry
     present = (geom.notna() & ~geom.is_empty).to_numpy()
@@ -223,6 +223,6 @@ def build(gdf, style) -> tuple[list, Bound]:
     return layers, b
 
 
-def layer(gdf, style) -> list:
+def layer(gdf, style, colors: dict | None = None, order: list | None = None) -> list:
     """Native Lonboard layers for a style: one per geometry type present."""
-    return build(gdf, style)[0]
+    return build(gdf, style, colors=colors, order=order)[0]

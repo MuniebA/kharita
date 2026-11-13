@@ -41,11 +41,34 @@ def relabel(scale: Scale, fmt: str) -> Scale:
     return replace(scale, labels=tuple(labels))
 
 
+# Bar legend sizing: inner width of the card and an average tick character, in pixels
+BAR_WIDTH = 236
+TICK_GAP = 4
+
+
+def _text_width(text: str) -> float:
+    # Approximate pixel width at 10.5px: digits, narrow punctuation, wide capitals
+    return sum(3.0 if ch in ".,: " else 8.5 if ch.isupper() else 6.0 for ch in text)
+COMPACT_FROM = 10_000
+
+
+def compact(x: float) -> str:
+    """Short number for tight legends: 553,515 as 554K, 5,274,321 as 5.27M."""
+    a = abs(x)
+    for div, suffix in ((1e9, "B"), (1e6, "M"), (1e3, "K")):
+        if a >= div:
+            text = f"{x / div:.3g}"
+            return (f"{x / div:.0f}" if "e" in text else text) + suffix
+    return fmt_number(x, 0 if float(x).is_integer() else 1)
+
+
 def _ticks(scale: Scale, fmt) -> list[str]:
-    # Class edge values for the bar legend, formatted
+    # Class edge values for the bar legend: your format, else short numbers when large
     edges = np.asarray(scale.edges, dtype=float)
     if fmt is not None:
         return [fmt.format(x) for x in edges]
+    if np.max(np.abs(edges)) >= COMPACT_FROM:
+        return [compact(x) for x in edges]
     d = _decimals(edges, bool(np.all(np.mod(edges, 1) == 0)))
     return [fmt_number(x, d) for x in edges]
 
@@ -55,6 +78,38 @@ def _tick_row(texts: list[str], quiet: str) -> str:
     spans = "".join(f"<span>{escape(t)}</span>" for t in texts)
     return (f'<div style="display:flex;justify-content:space-between;gap:6px;margin-top:3px;'
             f'color:{quiet};font-size:10.5px;font-variant-numeric:tabular-nums">{spans}</div>')
+
+
+def _crowded(texts: list[str], step: int = 1) -> bool:
+    # True when labels `step` edges apart would overlap; end labels hang fully inside the bar
+    n = len(texts) - 1
+    slot = BAR_WIDTH / max(n, 1) * step
+
+    def reach(i: int, side: str) -> float:
+        # Pixels a label extends towards its neighbour
+        whole = _text_width(texts[i])
+        if (i == 0 and side == "right") or (i == n and side == "left"):
+            return whole
+        return whole / 2
+
+    return any(reach(i, "right") + reach(i + step, "left") + TICK_GAP > slot
+               for i in range(0, n - step + 1))
+
+
+def _edge_ticks(texts: list[str], quiet: str) -> str:
+    # Each label sits exactly under its class edge; crowded labels alternate between two rows
+    n = len(texts) - 1
+    stagger = _crowded(texts)
+    spans = []
+    for i, text in enumerate(texts):
+        shift = "0" if i == 0 else "-100%" if i == n else "-50%"
+        top = "13px" if stagger and i % 2 else "0"
+        spans.append(f'<span style="position:absolute;left:{i / n * 100:.2f}%;top:{top};'
+                     f'transform:translateX({shift});white-space:nowrap">{escape(text)}</span>')
+    height = 27 if stagger else 14
+    return (f'<div style="position:relative;width:{BAR_WIDTH}px;height:{height}px;'
+            f'margin-top:3px;color:{quiet};'
+            f'font-size:10.5px;font-variant-numeric:tabular-nums">{"".join(spans)}</div>')
 
 
 def legend_block(scale: Scale, title=None, fmt=None, labels=None, note=None, style="list",
@@ -96,9 +151,16 @@ def legend_block(scale: Scale, title=None, fmt=None, labels=None, note=None, sty
                 + _tick_row(list(scale.labels), t["quiet"]))
     elif style == "bar":
         cells = "".join(f'<span style="flex:1;background:{c}"></span>' for c in scale.colors)
-        bar = f'<div style="display:flex;overflow:hidden;{bar_css}">{cells}</div>'
-        texts = list(scale.labels) if labels is not None else _ticks(scale, fmt)
-        body = bar + _tick_row(texts, t["quiet"])
+        bar = (f'<div style="display:flex;overflow:hidden;width:{BAR_WIDTH}px;{bar_css}">'
+               f"{cells}</div>")
+        if labels is not None:
+            body = bar + _tick_row(list(scale.labels), t["quiet"])
+        else:
+            texts = _ticks(scale, fmt)
+            if _crowded(texts, step=2):
+                # Too long even on two rows: fall back to short numbers like 2.64M
+                texts = [compact(x) for x in scale.edges]
+            body = bar + _edge_ticks(texts, t["quiet"])
     else:
         body = "".join(row(c, lab, n) for c, lab, n in zip(scale.colors, scale.labels,
                                                              scale.counts, strict=True))

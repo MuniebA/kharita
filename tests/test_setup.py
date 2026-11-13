@@ -12,7 +12,7 @@ HEX = re.compile(r"^#[0-9a-f]{6}$")
 
 
 def test_version():
-    assert kharita.__version__ == "0.0.7"
+    assert kharita.__version__ == "0.0.8"
 
 
 def test_errors_share_a_base():
@@ -41,7 +41,10 @@ def test_ramps_are_well_formed():
         assert ramp["kind"] in {"sequential", "diverging", "categorical"}, name
         assert all(HEX.match(c) for c in ramp["colors"]), name
         if ramp["kind"] != "categorical":
-            assert len(ramp["colors"]) == 11, name
+            # Published palettes keep their own stop count; 11 for sampled colormaps
+            assert len(ramp["colors"]) >= 5, name
+        if ramp["kind"] == "diverging":
+            assert len(ramp["colors"]) % 2 == 1, name
 
 
 def test_polygon_fixture_has_the_awkward_cases(polygons):

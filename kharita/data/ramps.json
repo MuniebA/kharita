@@ -399,5 +399,1978 @@
    "#f781bf",
    "#999999"
   ]
+ },
+ "bugn": {
+  "kind": "sequential",
+  "source": "colorbrewer",
+  "colors": [
+   "#f7fcfd",
+   "#e9f7fa",
+   "#d6f0ee",
+   "#b8e4db",
+   "#8fd4c2",
+   "#65c2a3",
+   "#48b27f",
+   "#2f9858",
+   "#157f3b",
+   "#006428",
+   "#00441b"
+  ]
+ },
+ "gnbu": {
+  "kind": "sequential",
+  "source": "colorbrewer",
+  "colors": [
+   "#f7fcf0",
+   "#e5f5e0",
+   "#d4eece",
+   "#bee6bf",
+   "#9fdab8",
+   "#7accc4",
+   "#57b8d0",
+   "#389bc6",
+   "#1d7eb7",
+   "#085fa3",
+   "#084081"
+  ]
+ },
+ "greys": {
+  "kind": "sequential",
+  "source": "colorbrewer",
+  "colors": [
+   "#ffffff",
+   "#f3f3f3",
+   "#e2e2e2",
+   "#cecece",
+   "#b5b5b5",
+   "#959595",
+   "#7a7a7a",
+   "#5f5f5f",
+   "#404040",
+   "#1d1d1d",
+   "#000000"
+  ]
+ },
+ "pubu": {
+  "kind": "sequential",
+  "source": "colorbrewer",
+  "colors": [
+   "#fff7fb",
+   "#f0eaf4",
+   "#dbdaeb",
+   "#c0c9e2",
+   "#9cb9d9",
+   "#73a9cf",
+   "#4295c3",
+   "#187cb6",
+   "#0567a2",
+   "#045382",
+   "#023858"
+  ]
+ },
+ "pubugn": {
+  "kind": "sequential",
+  "source": "colorbrewer",
+  "colors": [
+   "#fff7fb",
+   "#f0e7f2",
+   "#dbd8ea",
+   "#c0c9e2",
+   "#99b9d9",
+   "#66a9cf",
+   "#4095c3",
+   "#16879f",
+   "#027976",
+   "#016451",
+   "#014636"
+  ]
+ },
+ "purd": {
+  "kind": "sequential",
+  "source": "colorbrewer",
+  "colors": [
+   "#f7f4f9",
+   "#eae5f1",
+   "#dcc9e2",
+   "#d0abd3",
+   "#cd8bc2",
+   "#df64af",
+   "#e53592",
+   "#d81b6a",
+   "#b80b4e",
+   "#8d003b",
+   "#67001f"
+  ]
+ },
+ "rdpu": {
+  "kind": "sequential",
+  "source": "colorbrewer",
+  "colors": [
+   "#fff7f3",
+   "#fde5e2",
+   "#fcd0cc",
+   "#fbb6bc",
+   "#f994b1",
+   "#f767a1",
+   "#e23e99",
+   "#c01588",
+   "#99017b",
+   "#6f0174",
+   "#49006a"
+  ]
+ },
+ "ylorbr": {
+  "kind": "sequential",
+  "source": "colorbrewer",
+  "colors": [
+   "#ffffe5",
+   "#fff9c5",
+   "#feeba2",
+   "#fed778",
+   "#febb47",
+   "#fe9829",
+   "#f07818",
+   "#d85a09",
+   "#b84203",
+   "#8e3104",
+   "#662506"
+  ]
+ },
+ "prgn": {
+  "kind": "diverging",
+  "source": "colorbrewer",
+  "colors": [
+   "#40004b",
+   "#752982",
+   "#9970ab",
+   "#c1a4ce",
+   "#e7d4e8",
+   "#f6f7f6",
+   "#d9f0d3",
+   "#a5da9f",
+   "#5aae61",
+   "#1a7736",
+   "#00441b"
+  ]
+ },
+ "rdgy": {
+  "kind": "diverging",
+  "source": "colorbrewer",
+  "colors": [
+   "#67001f",
+   "#b1182b",
+   "#d6604d",
+   "#f3a481",
+   "#fddbc7",
+   "#fefefe",
+   "#e0e0e0",
+   "#b9b9b9",
+   "#878787",
+   "#4c4c4c",
+   "#1a1a1a"
+  ]
+ },
+ "rdylgn": {
+  "kind": "diverging",
+  "source": "colorbrewer",
+  "colors": [
+   "#a50026",
+   "#d62f27",
+   "#f46d43",
+   "#fdad60",
+   "#fee08b",
+   "#feffbe",
+   "#d9ef8b",
+   "#a5d86a",
+   "#66bd63",
+   "#199750",
+   "#006837"
+  ]
+ },
+ "spectral": {
+  "kind": "diverging",
+  "source": "colorbrewer",
+  "colors": [
+   "#9e0142",
+   "#d43d4f",
+   "#f46d43",
+   "#fdad60",
+   "#fee08b",
+   "#ffffbe",
+   "#e6f598",
+   "#aadca4",
+   "#66c2a5",
+   "#3387bc",
+   "#5e4fa2"
+  ]
+ },
+ "accent": {
+  "kind": "categorical",
+  "source": "colorbrewer",
+  "colors": [
+   "#7fc97f",
+   "#beaed4",
+   "#fdc086",
+   "#ffff99",
+   "#386cb0",
+   "#f0027f",
+   "#bf5b17",
+   "#666666"
+  ]
+ },
+ "pastel1": {
+  "kind": "categorical",
+  "source": "colorbrewer",
+  "colors": [
+   "#fbb4ae",
+   "#b3cde3",
+   "#ccebc5",
+   "#decbe4",
+   "#fed9a6",
+   "#ffffcc",
+   "#e5d8bd",
+   "#fddaec",
+   "#f2f2f2"
+  ]
+ },
+ "pastel2": {
+  "kind": "categorical",
+  "source": "colorbrewer",
+  "colors": [
+   "#b3e2cd",
+   "#fdcdac",
+   "#cbd5e8",
+   "#f4cae4",
+   "#e6f5c9",
+   "#fff2ae",
+   "#f1e2cc",
+   "#cccccc"
+  ]
+ },
+ "set3": {
+  "kind": "categorical",
+  "source": "colorbrewer",
+  "colors": [
+   "#8dd3c7",
+   "#ffffb3",
+   "#bebada",
+   "#fb8072",
+   "#80b1d3",
+   "#fdb462",
+   "#b3de69",
+   "#fccde5",
+   "#d9d9d9",
+   "#bc80bd",
+   "#ccebc5",
+   "#ffed6f"
+  ]
+ },
+ "turbo": {
+  "kind": "sequential",
+  "source": "matplotlib-turbo",
+  "colors": [
+   "#30123b",
+   "#4559cb",
+   "#3e9bfe",
+   "#19d5cd",
+   "#46f884",
+   "#a4fc3c",
+   "#e1dd37",
+   "#fea431",
+   "#f05b12",
+   "#c32503",
+   "#7a0403"
+  ]
+ },
+ "acton": {
+  "kind": "sequential",
+  "source": "crameri",
+  "colors": [
+   "#260d40",
+   "#3b2b5b",
+   "#4f4775",
+   "#665e8a",
+   "#85648e",
+   "#a86690",
+   "#ca7199",
+   "#d892b4",
+   "#e2b2cf",
+   "#e9d1e7",
+   "#f0eafa"
+  ]
+ },
+ "bamako": {
+  "kind": "sequential",
+  "source": "crameri",
+  "colors": [
+   "#003b47",
+   "#0c4240",
+   "#1b4c37",
+   "#2e582b",
+   "#47681c",
+   "#637a0a",
+   "#818800",
+   "#a4940e",
+   "#c6ae39",
+   "#e5cb75",
+   "#ffe5ad"
+  ]
+ },
+ "batlow": {
+  "kind": "sequential",
+  "source": "crameri",
+  "colors": [
+   "#011959",
+   "#0f3c5f",
+   "#185562",
+   "#30685c",
+   "#577647",
+   "#828231",
+   "#b38e2f",
+   "#e19752",
+   "#fba689",
+   "#fdb9c2",
+   "#faccfa"
+  ]
+ },
+ "batlowk": {
+  "kind": "sequential",
+  "source": "crameri",
+  "colors": [
+   "#04050a",
+   "#17273b",
+   "#304d5d",
+   "#47605c",
+   "#61704d",
+   "#86833c",
+   "#b7953c",
+   "#e5a160",
+   "#f9ac92",
+   "#fdbbc5",
+   "#faccfa"
+  ]
+ },
+ "batloww": {
+  "kind": "sequential",
+  "source": "crameri",
+  "colors": [
+   "#011959",
+   "#0f3c5f",
+   "#175462",
+   "#2d685e",
+   "#53784c",
+   "#7e8737",
+   "#b1993a",
+   "#dba76d",
+   "#f3b49e",
+   "#ffdddb",
+   "#fffefe"
+  ]
+ },
+ "bilbao": {
+  "kind": "sequential",
+  "source": "crameri",
+  "colors": [
+   "#4c0001",
+   "#702126",
+   "#8e3f46",
+   "#9e5a55",
+   "#a46f5a",
+   "#a9825e",
+   "#ae9663",
+   "#b9af82",
+   "#c4c0ac",
+   "#d6d5d3",
+   "#ffffff"
+  ]
+ },
+ "buda": {
+  "kind": "sequential",
+  "source": "crameri",
+  "colors": [
+   "#b301b3",
+   "#b327a0",
+   "#b84294",
+   "#bf598c",
+   "#c76f85",
+   "#cd857e",
+   "#d39b79",
+   "#d9b273",
+   "#dec96d",
+   "#e7e268",
+   "#ffff66"
+  ]
+ },
+ "davos": {
+  "kind": "sequential",
+  "source": "crameri",
+  "colors": [
+   "#00054a",
+   "#0f286d",
+   "#234a8c",
+   "#3a679b",
+   "#547d9c",
+   "#6c8e93",
+   "#849e89",
+   "#a6b78a",
+   "#d4dba8",
+   "#f5f5d7",
+   "#fefefe"
+  ]
+ },
+ "devon": {
+  "kind": "sequential",
+  "source": "crameri",
+  "colors": [
+   "#2c1a4c",
+   "#293164",
+   "#274a7e",
+   "#2f62a0",
+   "#4c77c4",
+   "#7e8fdd",
+   "#a8a5ec",
+   "#c1bbf2",
+   "#d5d1f6",
+   "#eae8fb",
+   "#ffffff"
+  ]
+ },
+ "glasgow": {
+  "kind": "sequential",
+  "source": "crameri",
+  "colors": [
+   "#361338",
+   "#4c1925",
+   "#652211",
+   "#743b01",
+   "#735704",
+   "#6d702d",
+   "#65845d",
+   "#60998e",
+   "#7eaeb9",
+   "#abc0dc",
+   "#dbd3ff"
+  ]
+ },
+ "grayc": {
+  "kind": "sequential",
+  "source": "crameri",
+  "colors": [
+   "#000000",
+   "#202020",
+   "#383838",
+   "#4e4e4e",
+   "#636363",
+   "#777777",
+   "#8b8b8b",
+   "#a3a3a3",
+   "#bdbdbd",
+   "#dcdcdc",
+   "#ffffff"
+  ]
+ },
+ "hawaii": {
+  "kind": "sequential",
+  "source": "crameri",
+  "colors": [
+   "#8c0273",
+   "#91275b",
+   "#954147",
+   "#985936",
+   "#9c7524",
+   "#9c961c",
+   "#8fb63c",
+   "#77cc72",
+   "#62dca9",
+   "#71ece0",
+   "#b3f2fd"
+  ]
+ },
+ "imola": {
+  "kind": "sequential",
+  "source": "crameri",
+  "colors": [
+   "#1a33b3",
+   "#2344aa",
+   "#2c55a1",
+   "#356598",
+   "#42748b",
+   "#54867f",
+   "#6a9d78",
+   "#84b772",
+   "#9fd26b",
+   "#caec67",
+   "#ffff66"
+  ]
+ },
+ "lajolla": {
+  "kind": "sequential",
+  "source": "crameri",
+  "colors": [
+   "#191900",
+   "#30210d",
+   "#512d1e",
+   "#7d3b35",
+   "#b34947",
+   "#d9604e",
+   "#e38050",
+   "#ea9e53",
+   "#f0bd57",
+   "#f9e384",
+   "#fffecb"
+  ]
+ },
+ "lapaz": {
+  "kind": "sequential",
+  "source": "crameri",
+  "colors": [
+   "#1a0c64",
+   "#222a79",
+   "#28468b",
+   "#315e99",
+   "#4277a2",
+   "#5c8ca3",
+   "#7c9b9e",
+   "#a1a696",
+   "#cab79d",
+   "#f2d7c6",
+   "#fef2f3"
+  ]
+ },
+ "lipari": {
+  "kind": "sequential",
+  "source": "crameri",
+  "colors": [
+   "#031326",
+   "#0f3455",
+   "#3c5478",
+   "#615e78",
+   "#806070",
+   "#a56267",
+   "#cf695e",
+   "#e98868",
+   "#e6aa7f",
+   "#eacda5",
+   "#fdf5da"
+  ]
+ },
+ "navia": {
+  "kind": "sequential",
+  "source": "crameri",
+  "colors": [
+   "#031327",
+   "#063058",
+   "#105185",
+   "#236c91",
+   "#327c89",
+   "#418a80",
+   "#549b75",
+   "#71b469",
+   "#a7d278",
+   "#dde7ae",
+   "#fcf4d9"
+  ]
+ },
+ "nuuk": {
+  "kind": "sequential",
+  "source": "crameri",
+  "colors": [
+   "#05598c",
+   "#266184",
+   "#436e82",
+   "#638089",
+   "#859493",
+   "#a1a698",
+   "#b2b293",
+   "#bdbd8a",
+   "#caca83",
+   "#e4e391",
+   "#fefeb2"
+  ]
+ },
+ "oslo": {
+  "kind": "sequential",
+  "source": "crameri",
+  "colors": [
+   "#010101",
+   "#0d1925",
+   "#122d48",
+   "#1a446d",
+   "#2c5d96",
+   "#507bbc",
+   "#7494c9",
+   "#93a7c9",
+   "#b2bccc",
+   "#d8dade",
+   "#ffffff"
+  ]
+ },
+ "tokyo": {
+  "kind": "sequential",
+  "source": "crameri",
+  "colors": [
+   "#1c0e34",
+   "#461e42",
+   "#653a4d",
+   "#6e5151",
+   "#716152",
+   "#747053",
+   "#788555",
+   "#7fa45d",
+   "#95cb78",
+   "#c7f0b2",
+   "#effcdd"
+  ]
+ },
+ "turku": {
+  "kind": "sequential",
+  "source": "crameri",
+  "colors": [
+   "#000000",
+   "#21211e",
+   "#3c3c32",
+   "#565640",
+   "#71704c",
+   "#938c5b",
+   "#b9a06e",
+   "#d9a783",
+   "#efb1a1",
+   "#fdcbc7",
+   "#ffe6e6"
+  ]
+ },
+ "bam": {
+  "kind": "diverging",
+  "source": "crameri",
+  "colors": [
+   "#65024b",
+   "#99377f",
+   "#c164a9",
+   "#dd9acb",
+   "#f0d1e8",
+   "#f6f1f0",
+   "#e2edd1",
+   "#abcb86",
+   "#709e4b",
+   "#407626",
+   "#0d4c00"
+  ]
+ },
+ "berlin": {
+  "kind": "diverging",
+  "source": "crameri",
+  "colors": [
+   "#9eb0ff",
+   "#62a6e0",
+   "#3280a6",
+   "#20526a",
+   "#112732",
+   "#190c09",
+   "#371000",
+   "#61200b",
+   "#964a36",
+   "#ca7b71",
+   "#ffadad"
+  ]
+ },
+ "broc": {
+  "kind": "diverging",
+  "source": "crameri",
+  "colors": [
+   "#2c1a4c",
+   "#283f72",
+   "#3f6b99",
+   "#7697b7",
+   "#b3c5d7",
+   "#ebeeec",
+   "#dcdbb8",
+   "#b4b479",
+   "#81814c",
+   "#505023",
+   "#262600"
+  ]
+ },
+ "cork": {
+  "kind": "diverging",
+  "source": "crameri",
+  "colors": [
+   "#2c194c",
+   "#284073",
+   "#3d6b98",
+   "#6f92b3",
+   "#adc1d4",
+   "#e6edec",
+   "#b7cfb7",
+   "#78a578",
+   "#438142",
+   "#195615",
+   "#0f2903"
+  ]
+ },
+ "lisbon": {
+  "kind": "diverging",
+  "source": "crameri",
+  "colors": [
+   "#e6e5ff",
+   "#a3b5d7",
+   "#6083ae",
+   "#2a537d",
+   "#132a42",
+   "#171919",
+   "#383522",
+   "#68613e",
+   "#9a9160",
+   "#cfc998",
+   "#ffffd9"
+  ]
+ },
+ "managua": {
+  "kind": "diverging",
+  "source": "crameri",
+  "colors": [
+   "#ffcf67",
+   "#e09f57",
+   "#c17449",
+   "#a0513e",
+   "#773339",
+   "#572949",
+   "#4c3d73",
+   "#5163a2",
+   "#5f89c3",
+   "#6fb6e2",
+   "#81e7ff"
+  ]
+ },
+ "roma": {
+  "kind": "diverging",
+  "source": "crameri",
+  "colors": [
+   "#7e1700",
+   "#974d13",
+   "#ac7726",
+   "#c1a343",
+   "#d2d484",
+   "#c0eac3",
+   "#89dad7",
+   "#4bb2ce",
+   "#2d88be",
+   "#1e5fac",
+   "#033198"
+  ]
+ },
+ "tofino": {
+  "kind": "diverging",
+  "source": "crameri",
+  "colors": [
+   "#ded9ff",
+   "#9baae2",
+   "#5777ba",
+   "#304a7b",
+   "#19253d",
+   "#0d1613",
+   "#18321a",
+   "#2c5d30",
+   "#4a8d4b",
+   "#91be74",
+   "#dbe69b"
+  ]
+ },
+ "vanimo": {
+  "kind": "diverging",
+  "source": "crameri",
+  "colors": [
+   "#ffcdfd",
+   "#d889ca",
+   "#ad539a",
+   "#742e64",
+   "#33172c",
+   "#1a1513",
+   "#232c14",
+   "#415a1f",
+   "#62872f",
+   "#8abc53",
+   "#befda5"
+  ]
+ },
+ "vik": {
+  "kind": "diverging",
+  "source": "crameri",
+  "colors": [
+   "#001261",
+   "#02397a",
+   "#116496",
+   "#5496b7",
+   "#a7c9da",
+   "#ece5e0",
+   "#e1b8a0",
+   "#cc875f",
+   "#b75a26",
+   "#852206",
+   "#590008"
+  ]
+ },
+ "bukavu": {
+  "kind": "diverging",
+  "source": "crameri",
+  "colors": [
+   "#1a3333",
+   "#204c6e",
+   "#2f7ab6",
+   "#56a6c9",
+   "#8ad1cf",
+   "#014026",
+   "#326513",
+   "#7f7733",
+   "#b68f60",
+   "#d6c8b4",
+   "#ededfc"
+  ]
+ },
+ "fes": {
+  "kind": "diverging",
+  "source": "crameri",
+  "colors": [
+   "#0d0d0d",
+   "#3b3b3b",
+   "#646464",
+   "#888888",
+   "#b7b7b7",
+   "#024026",
+   "#4d5923",
+   "#8b692f",
+   "#be905f",
+   "#d6c8b4",
+   "#ededfc"
+  ]
+ },
+ "oleron": {
+  "kind": "diverging",
+  "source": "crameri",
+  "colors": [
+   "#1a2659",
+   "#414d80",
+   "#6c79ac",
+   "#99a6d9",
+   "#c4d1f6",
+   "#1a4c00",
+   "#535e02",
+   "#8e7d33",
+   "#c5a46c",
+   "#f3d4ab",
+   "#fdfde6"
+  ]
+ },
+ "algae": {
+  "kind": "sequential",
+  "source": "cmocean",
+  "colors": [
+   "#d7f9d0",
+   "#b8e3ac",
+   "#96cd8a",
+   "#72bb6c",
+   "#44a855",
+   "#129450",
+   "#097d4b",
+   "#156641",
+   "#1a5034",
+   "#183a25",
+   "#122414"
+  ]
+ },
+ "amp": {
+  "kind": "sequential",
+  "source": "cmocean",
+  "colors": [
+   "#f1edec",
+   "#e5cfc9",
+   "#dcb1a3",
+   "#d3957f",
+   "#ca775b",
+   "#c0583b",
+   "#b33826",
+   "#9d1926",
+   "#7f0e29",
+   "#5c0e21",
+   "#3c0912"
+  ]
+ },
+ "deep": {
+  "kind": "sequential",
+  "source": "cmocean",
+  "colors": [
+   "#fdfecc",
+   "#caebb2",
+   "#92d8a4",
+   "#66c2a4",
+   "#52a8a3",
+   "#488e9e",
+   "#407598",
+   "#3e5a92",
+   "#41407b",
+   "#382d51",
+   "#281a2c"
+  ]
+ },
+ "dense": {
+  "kind": "sequential",
+  "source": "cmocean",
+  "colors": [
+   "#e6f1f1",
+   "#bcdce5",
+   "#96c5e2",
+   "#7bade4",
+   "#7390e3",
+   "#7871d5",
+   "#7954bb",
+   "#743a98",
+   "#682471",
+   "#531546",
+   "#360e24"
+  ]
+ },
+ "haline": {
+  "kind": "sequential",
+  "source": "cmocean",
+  "colors": [
+   "#2a186c",
+   "#2927a2",
+   "#0d4e96",
+   "#18668c",
+   "#2d7c89",
+   "#3c9387",
+   "#4aaa81",
+   "#65c172",
+   "#94d35d",
+   "#d0e06d",
+   "#fdef9a"
+  ]
+ },
+ "ice": {
+  "kind": "sequential",
+  "source": "cmocean",
+  "colors": [
+   "#040613",
+   "#1b1b37",
+   "#302f5f",
+   "#3d4389",
+   "#3e5ea9",
+   "#427bb7",
+   "#5296c1",
+   "#6bb1cb",
+   "#8ccbd6",
+   "#bce4e7",
+   "#eafdfd"
+  ]
+ },
+ "matter": {
+  "kind": "sequential",
+  "source": "cmocean",
+  "colors": [
+   "#feedb0",
+   "#faca90",
+   "#f5a773",
+   "#ee855e",
+   "#e26253",
+   "#ce4356",
+   "#b32e5f",
+   "#932063",
+   "#721a60",
+   "#4f1652",
+   "#2f0f3e"
+  ]
+ },
+ "rain": {
+  "kind": "sequential",
+  "source": "cmocean",
+  "colors": [
+   "#eeedf3",
+   "#ded3c9",
+   "#cbba98",
+   "#a1ac82",
+   "#739d75",
+   "#3d8e6e",
+   "#0c7b6e",
+   "#08636b",
+   "#1e4b5f",
+   "#25334b",
+   "#221b38"
+  ]
+ },
+ "solar": {
+  "kind": "sequential",
+  "source": "cmocean",
+  "colors": [
+   "#331418",
+   "#521e22",
+   "#732724",
+   "#8f341f",
+   "#a54a17",
+   "#b66413",
+   "#c47f15",
+   "#cf9c1d",
+   "#d8ba2a",
+   "#dedb3a",
+   "#e1fd4b"
+  ]
+ },
+ "speed": {
+  "kind": "sequential",
+  "source": "cmocean",
+  "colors": [
+   "#fffdcd",
+   "#eedf98",
+   "#d8c55f",
+   "#b8b22f",
+   "#8ea20b",
+   "#5f920c",
+   "#32801f",
+   "#0f6b2b",
+   "#10542c",
+   "#193b23",
+   "#172313"
+  ]
+ },
+ "tempo": {
+  "kind": "sequential",
+  "source": "cmocean",
+  "colors": [
+   "#fff6f4",
+   "#dcdfd0",
+   "#b6cbaf",
+   "#8db997",
+   "#5da786",
+   "#2a937f",
+   "#117d79",
+   "#18656e",
+   "#1c4d61",
+   "#1a3651",
+   "#151d44"
+  ]
+ },
+ "thermal": {
+  "kind": "sequential",
+  "source": "cmocean",
+  "colors": [
+   "#042333",
+   "#0f326a",
+   "#40349f",
+   "#674396",
+   "#8b538d",
+   "#b15f82",
+   "#d66c6c",
+   "#f3824d",
+   "#fca63c",
+   "#f7d045",
+   "#e8fa5b"
+  ]
+ },
+ "turbid": {
+  "kind": "sequential",
+  "source": "cmocean",
+  "colors": [
+   "#e9f6ab",
+   "#dbd987",
+   "#cfbc66",
+   "#c4a14d",
+   "#b58740",
+   "#a1703b",
+   "#8a5e3a",
+   "#704d37",
+   "#563e30",
+   "#3b2f27",
+   "#221f1b"
+  ]
+ },
+ "balance": {
+  "kind": "diverging",
+  "source": "cmocean",
+  "colors": [
+   "#181c43",
+   "#293e97",
+   "#1670bc",
+   "#599cbb",
+   "#aac2cb",
+   "#f1eceb",
+   "#dcb2a4",
+   "#ca765b",
+   "#b33826",
+   "#7e0e29",
+   "#3c0912"
+  ]
+ },
+ "curl": {
+  "kind": "diverging",
+  "source": "cmocean",
+  "colors": [
+   "#151d44",
+   "#1c4d60",
+   "#117d79",
+   "#5ca786",
+   "#b6cbb0",
+   "#fdf5f4",
+   "#e6b8a2",
+   "#d37669",
+   "#ae4060",
+   "#75195d",
+   "#340d35"
+  ]
+ },
+ "delta": {
+  "kind": "diverging",
+  "source": "cmocean",
+  "colors": [
+   "#112040",
+   "#244297",
+   "#2378a3",
+   "#4da7af",
+   "#accec6",
+   "#fffccc",
+   "#d9c560",
+   "#8ca10a",
+   "#33801f",
+   "#10532c",
+   "#172313"
+  ]
+ },
+ "diff": {
+  "kind": "diverging",
+  "source": "cmocean",
+  "colors": [
+   "#082340",
+   "#214d6a",
+   "#5a7487",
+   "#8d9ca7",
+   "#c6cacf",
+   "#f6f1f0",
+   "#cec7b8",
+   "#a19679",
+   "#7a6d41",
+   "#4b471c",
+   "#1c2207"
+  ]
+ },
+ "tarn": {
+  "kind": "diverging",
+  "source": "cmocean",
+  "colors": [
+   "#17230e",
+   "#3c4d0d",
+   "#846a25",
+   "#cb8448",
+   "#e3bfa3",
+   "#fcf7f6",
+   "#cbccaa",
+   "#7ca490",
+   "#2e7e7e",
+   "#154f6a",
+   "#101e4f"
+  ]
+ },
+ "topo": {
+  "kind": "diverging",
+  "source": "cmocean",
+  "colors": [
+   "#281a2c",
+   "#41407a",
+   "#407598",
+   "#51a7a3",
+   "#92d8a4",
+   "#0d2514",
+   "#27511e",
+   "#6e713c",
+   "#b3913f",
+   "#d8c38b",
+   "#f9fde4"
+  ]
+ },
+ "blugrn": {
+  "kind": "sequential",
+  "source": "cartocolors",
+  "colors": [
+   "#c4e6c3",
+   "#96d2a4",
+   "#6dbc90",
+   "#4da284",
+   "#36877a",
+   "#266b6e",
+   "#1d4f60"
+  ]
+ },
+ "bluyl": {
+  "kind": "sequential",
+  "source": "cartocolors",
+  "colors": [
+   "#f7feae",
+   "#b7e6a5",
+   "#7ccba2",
+   "#46aea0",
+   "#089099",
+   "#00718b",
+   "#045275"
+  ]
+ },
+ "brwnyl": {
+  "kind": "sequential",
+  "source": "cartocolors",
+  "colors": [
+   "#ede5cf",
+   "#e0c2a2",
+   "#d39c83",
+   "#c1766f",
+   "#a65461",
+   "#813753",
+   "#541f3f"
+  ]
+ },
+ "burg": {
+  "kind": "sequential",
+  "source": "cartocolors",
+  "colors": [
+   "#ffc6c4",
+   "#f4a3a8",
+   "#e38191",
+   "#cc607d",
+   "#ad466c",
+   "#8b3058",
+   "#672044"
+  ]
+ },
+ "burgyl": {
+  "kind": "sequential",
+  "source": "cartocolors",
+  "colors": [
+   "#fbe6c5",
+   "#f5ba98",
+   "#ee8a82",
+   "#dc7176",
+   "#c8586c",
+   "#9c3f5d",
+   "#70284a"
+  ]
+ },
+ "darkmint": {
+  "kind": "sequential",
+  "source": "cartocolors",
+  "colors": [
+   "#d2fbd4",
+   "#a5dbc2",
+   "#7bbcb0",
+   "#559c9e",
+   "#3a7c89",
+   "#235d72",
+   "#123f5a"
+  ]
+ },
+ "emrld": {
+  "kind": "sequential",
+  "source": "cartocolors",
+  "colors": [
+   "#d3f2a3",
+   "#97e196",
+   "#6cc08b",
+   "#4c9b82",
+   "#217a79",
+   "#105965",
+   "#074050"
+  ]
+ },
+ "magenta": {
+  "kind": "sequential",
+  "source": "cartocolors",
+  "colors": [
+   "#f3cbd3",
+   "#eaa9bd",
+   "#dd88ac",
+   "#ca699d",
+   "#b14d8e",
+   "#91357d",
+   "#6c2167"
+  ]
+ },
+ "mint": {
+  "kind": "sequential",
+  "source": "cartocolors",
+  "colors": [
+   "#e4f1e1",
+   "#b4d9cc",
+   "#89c0b6",
+   "#63a6a0",
+   "#448c8a",
+   "#287274",
+   "#0d585f"
+  ]
+ },
+ "oryel": {
+  "kind": "sequential",
+  "source": "cartocolors",
+  "colors": [
+   "#ecda9a",
+   "#efc47e",
+   "#f3ad6a",
+   "#f7945d",
+   "#f97b57",
+   "#f66356",
+   "#ee4d5a"
+  ]
+ },
+ "peach": {
+  "kind": "sequential",
+  "source": "cartocolors",
+  "colors": [
+   "#fde0c5",
+   "#facba6",
+   "#f8b58b",
+   "#f59e72",
+   "#f2855d",
+   "#ef6a4c",
+   "#eb4a40"
+  ]
+ },
+ "pinkyl": {
+  "kind": "sequential",
+  "source": "cartocolors",
+  "colors": [
+   "#fef6b5",
+   "#ffdd9a",
+   "#ffc285",
+   "#ffa679",
+   "#fa8a76",
+   "#f16d7a",
+   "#e15383"
+  ]
+ },
+ "purp": {
+  "kind": "sequential",
+  "source": "cartocolors",
+  "colors": [
+   "#f3e0f7",
+   "#e4c7f1",
+   "#d1afe8",
+   "#b998dd",
+   "#9f82ce",
+   "#826dba",
+   "#63589f"
+  ]
+ },
+ "purpor": {
+  "kind": "sequential",
+  "source": "cartocolors",
+  "colors": [
+   "#f9ddda",
+   "#f2b9c4",
+   "#e597b9",
+   "#ce78b3",
+   "#ad5fad",
+   "#834ba0",
+   "#573b88"
+  ]
+ },
+ "redor": {
+  "kind": "sequential",
+  "source": "cartocolors",
+  "colors": [
+   "#f6d2a9",
+   "#f5b78e",
+   "#f19c7c",
+   "#ea8171",
+   "#dd686c",
+   "#ca5268",
+   "#b13f64"
+  ]
+ },
+ "sunset": {
+  "kind": "sequential",
+  "source": "cartocolors",
+  "colors": [
+   "#f3e79b",
+   "#fac484",
+   "#f8a07e",
+   "#eb7f86",
+   "#ce6693",
+   "#a059a0",
+   "#5c53a5"
+  ]
+ },
+ "sunsetdark": {
+  "kind": "sequential",
+  "source": "cartocolors",
+  "colors": [
+   "#fcde9c",
+   "#faa476",
+   "#f0746e",
+   "#e34f6f",
+   "#dc3977",
+   "#b9257a",
+   "#7c1d6f"
+  ]
+ },
+ "carto-teal": {
+  "kind": "sequential",
+  "source": "cartocolors",
+  "colors": [
+   "#d1eeea",
+   "#a8dbd9",
+   "#85c4c9",
+   "#68abb8",
+   "#4f90a6",
+   "#3b738f",
+   "#2a5674"
+  ]
+ },
+ "tealgrn": {
+  "kind": "sequential",
+  "source": "cartocolors",
+  "colors": [
+   "#b0f2bc",
+   "#89e8ac",
+   "#67dba5",
+   "#4cc8a3",
+   "#38b2a3",
+   "#2c98a0",
+   "#257d98"
+  ]
+ },
+ "armyrose": {
+  "kind": "diverging",
+  "source": "cartocolors",
+  "colors": [
+   "#798234",
+   "#a3ad62",
+   "#d0d3a2",
+   "#fdfbe4",
+   "#f0c6c3",
+   "#df91a3",
+   "#d46780"
+  ]
+ },
+ "earth": {
+  "kind": "diverging",
+  "source": "cartocolors",
+  "colors": [
+   "#a16928",
+   "#bd925a",
+   "#d6bd8d",
+   "#edeac2",
+   "#b5c8b8",
+   "#79a7ac",
+   "#2887a1"
+  ]
+ },
+ "fall": {
+  "kind": "diverging",
+  "source": "cartocolors",
+  "colors": [
+   "#3d5941",
+   "#778868",
+   "#b5b991",
+   "#f6edbd",
+   "#edbb8a",
+   "#de8a5a",
+   "#ca562c"
+  ]
+ },
+ "geyser": {
+  "kind": "diverging",
+  "source": "cartocolors",
+  "colors": [
+   "#008080",
+   "#70a494",
+   "#b4c8a8",
+   "#f6edbd",
+   "#edbb8a",
+   "#de8a5a",
+   "#ca562c"
+  ]
+ },
+ "tealrose": {
+  "kind": "diverging",
+  "source": "cartocolors",
+  "colors": [
+   "#009392",
+   "#72aaa1",
+   "#b1c7b3",
+   "#f1eac8",
+   "#e5b9ad",
+   "#d98994",
+   "#d0587e"
+  ]
+ },
+ "temps": {
+  "kind": "diverging",
+  "source": "cartocolors",
+  "colors": [
+   "#009392",
+   "#39b185",
+   "#9ccb86",
+   "#e9e29c",
+   "#eeb479",
+   "#e88471",
+   "#cf597e"
+  ]
+ },
+ "tropic": {
+  "kind": "diverging",
+  "source": "cartocolors",
+  "colors": [
+   "#009b9e",
+   "#42b7b9",
+   "#a7d3d4",
+   "#f1f1f1",
+   "#e4c1d9",
+   "#d691c1",
+   "#c75dab"
+  ]
+ },
+ "antique": {
+  "kind": "categorical",
+  "source": "cartocolors",
+  "colors": [
+   "#855c75",
+   "#d9af6b",
+   "#af6458",
+   "#736f4c",
+   "#526a83",
+   "#625377",
+   "#68855c",
+   "#9c9c5e",
+   "#a06177",
+   "#8c785d"
+  ]
+ },
+ "bold": {
+  "kind": "categorical",
+  "source": "cartocolors",
+  "colors": [
+   "#7f3c8d",
+   "#11a579",
+   "#3969ac",
+   "#f2b701",
+   "#e73f74",
+   "#80ba5a",
+   "#e68310",
+   "#008695",
+   "#cf1c90",
+   "#f97b72"
+  ]
+ },
+ "pastel": {
+  "kind": "categorical",
+  "source": "cartocolors",
+  "colors": [
+   "#66c5cc",
+   "#f6cf71",
+   "#f89c74",
+   "#dcb0f2",
+   "#87c55f",
+   "#9eb9f3",
+   "#fe88b1",
+   "#c9db74",
+   "#8be0a4",
+   "#b497e7"
+  ]
+ },
+ "prism": {
+  "kind": "categorical",
+  "source": "cartocolors",
+  "colors": [
+   "#5f4690",
+   "#1d6996",
+   "#38a6a5",
+   "#0f8554",
+   "#73af48",
+   "#edad08",
+   "#e17c05",
+   "#cc503e",
+   "#94346e",
+   "#6f4070"
+  ]
+ },
+ "safe": {
+  "kind": "categorical",
+  "source": "cartocolors",
+  "colors": [
+   "#88ccee",
+   "#cc6677",
+   "#ddcc77",
+   "#117733",
+   "#332288",
+   "#aa4499",
+   "#44aa99",
+   "#999933",
+   "#882255",
+   "#661100"
+  ]
+ },
+ "vivid": {
+  "kind": "categorical",
+  "source": "cartocolors",
+  "colors": [
+   "#e58606",
+   "#5d69b1",
+   "#52bca3",
+   "#99c945",
+   "#cc61b0",
+   "#24796c",
+   "#daa51b",
+   "#2f8ac4",
+   "#764e9f",
+   "#ed645a"
+  ]
+ },
+ "terrain": {
+  "kind": "sequential",
+  "source": "kharita",
+  "colors": [
+   "#2e6b34",
+   "#5f9a44",
+   "#a7c46a",
+   "#e3dd9c",
+   "#d8b276",
+   "#b0815a",
+   "#86644f",
+   "#f4f1ec"
+  ]
+ },
+ "ndvi": {
+  "kind": "sequential",
+  "source": "kharita",
+  "colors": [
+   "#8c5a2b",
+   "#b8875a",
+   "#dcc48e",
+   "#e9edb0",
+   "#b5d97b",
+   "#73b45a",
+   "#2f8a3c",
+   "#0b5d2a"
+  ]
+ },
+ "aurora": {
+  "kind": "sequential",
+  "source": "kharita",
+  "colors": [
+   "#2e1065",
+   "#4338ca",
+   "#0891b2",
+   "#2dd4bf",
+   "#a7f3d0"
+  ]
+ },
+ "ember": {
+  "kind": "sequential",
+  "source": "kharita",
+  "colors": [
+   "#1c0a06",
+   "#5b1a0b",
+   "#9a2f0c",
+   "#d9541a",
+   "#f59e3b",
+   "#fde68a"
+  ]
+ },
+ "ipc": {
+  "kind": "categorical",
+  "source": "fews-net",
+  "colors": [
+   "#cdfacd",
+   "#fae61e",
+   "#e67800",
+   "#c80000",
+   "#640000"
+  ],
+  "keys": [
+   {
+    "value": "1",
+    "color": "#cdfacd",
+    "label": "1 Minimal"
+   },
+   {
+    "value": "2",
+    "color": "#fae61e",
+    "label": "2 Stressed"
+   },
+   {
+    "value": "3",
+    "color": "#e67800",
+    "label": "3 Crisis"
+   },
+   {
+    "value": "4",
+    "color": "#c80000",
+    "label": "4 Emergency"
+   },
+   {
+    "value": "5",
+    "color": "#640000",
+    "label": "5 Famine"
+   }
+  ]
+ },
+ "worldcover": {
+  "kind": "categorical",
+  "source": "esa-worldcover",
+  "colors": [
+   "#006400",
+   "#ffbb22",
+   "#ffff4c",
+   "#f096ff",
+   "#fa0000",
+   "#b4b4b4",
+   "#f0f0f0",
+   "#0064c8",
+   "#0096a0",
+   "#00cf75",
+   "#fae6a0"
+  ],
+  "keys": [
+   {
+    "value": "10",
+    "color": "#006400",
+    "label": "Tree cover"
+   },
+   {
+    "value": "20",
+    "color": "#ffbb22",
+    "label": "Shrubland"
+   },
+   {
+    "value": "30",
+    "color": "#ffff4c",
+    "label": "Grassland"
+   },
+   {
+    "value": "40",
+    "color": "#f096ff",
+    "label": "Cropland"
+   },
+   {
+    "value": "50",
+    "color": "#fa0000",
+    "label": "Built-up"
+   },
+   {
+    "value": "60",
+    "color": "#b4b4b4",
+    "label": "Bare / sparse vegetation"
+   },
+   {
+    "value": "70",
+    "color": "#f0f0f0",
+    "label": "Snow and ice"
+   },
+   {
+    "value": "80",
+    "color": "#0064c8",
+    "label": "Permanent water bodies"
+   },
+   {
+    "value": "90",
+    "color": "#0096a0",
+    "label": "Herbaceous wetland"
+   },
+   {
+    "value": "95",
+    "color": "#00cf75",
+    "label": "Mangroves"
+   },
+   {
+    "value": "100",
+    "color": "#fae6a0",
+    "label": "Moss and lichen"
+   }
+  ]
+ },
+ "landuse": {
+  "kind": "categorical",
+  "source": "kharita-lbcs",
+  "colors": [
+   "#fcd34d",
+   "#ef4444",
+   "#a855f7",
+   "#3b82f6",
+   "#6366f1",
+   "#22c55e",
+   "#86efac",
+   "#a3a635",
+   "#9ca3af",
+   "#6b7280",
+   "#f97316",
+   "#e7e5e4",
+   "#7dd3fc"
+  ],
+  "keys": [
+   {
+    "value": "residential",
+    "color": "#fcd34d",
+    "label": "residential"
+   },
+   {
+    "value": "commercial",
+    "color": "#ef4444",
+    "label": "commercial"
+   },
+   {
+    "value": "retail",
+    "color": "#ef4444",
+    "label": "retail"
+   },
+   {
+    "value": "industrial",
+    "color": "#a855f7",
+    "label": "industrial"
+   },
+   {
+    "value": "institutional",
+    "color": "#3b82f6",
+    "label": "institutional"
+   },
+   {
+    "value": "education",
+    "color": "#3b82f6",
+    "label": "education"
+   },
+   {
+    "value": "medical",
+    "color": "#3b82f6",
+    "label": "medical"
+   },
+   {
+    "value": "civic",
+    "color": "#3b82f6",
+    "label": "civic"
+   },
+   {
+    "value": "religious",
+    "color": "#6366f1",
+    "label": "religious"
+   },
+   {
+    "value": "park",
+    "color": "#22c55e",
+    "label": "park"
+   },
+   {
+    "value": "recreation",
+    "color": "#86efac",
+    "label": "recreation"
+   },
+   {
+    "value": "agriculture",
+    "color": "#a3a635",
+    "label": "agriculture"
+   },
+   {
+    "value": "transportation",
+    "color": "#9ca3af",
+    "label": "transportation"
+   },
+   {
+    "value": "utilities",
+    "color": "#6b7280",
+    "label": "utilities"
+   },
+   {
+    "value": "mixed",
+    "color": "#f97316",
+    "label": "mixed"
+   },
+   {
+    "value": "vacant",
+    "color": "#e7e5e4",
+    "label": "vacant"
+   },
+   {
+    "value": "water",
+    "color": "#7dd3fc",
+    "label": "water"
+   }
+  ]
+ },
+ "heatwave": {
+  "kind": "diverging",
+  "source": "colorbrewer",
+  "colors": [
+   "#053061",
+   "#2065ab",
+   "#4393c3",
+   "#90c4dd",
+   "#d1e5f0",
+   "#f6f7f7",
+   "#fddbc7",
+   "#f3a481",
+   "#d6604d",
+   "#b1182b",
+   "#67001f"
+  ],
+  "alias": "rdbu-r"
+ },
+ "ocean": {
+  "kind": "sequential",
+  "source": "cmocean",
+  "colors": [
+   "#fdfecc",
+   "#caebb2",
+   "#92d8a4",
+   "#66c2a4",
+   "#52a8a3",
+   "#488e9e",
+   "#407598",
+   "#3e5a92",
+   "#41407b",
+   "#382d51",
+   "#281a2c"
+  ],
+  "alias": "deep"
+ },
+ "forest": {
+  "kind": "sequential",
+  "source": "colorbrewer",
+  "colors": [
+   "#ffffe5",
+   "#f9fdc2",
+   "#e5f5ac",
+   "#c8e99b",
+   "#a2d88a",
+   "#77c679",
+   "#4cb063",
+   "#2f934d",
+   "#15793e",
+   "#006034",
+   "#004529"
+  ],
+  "alias": "ylgn"
+ },
+ "desert": {
+  "kind": "sequential",
+  "source": "colorbrewer",
+  "colors": [
+   "#ffffe5",
+   "#fff9c5",
+   "#feeba2",
+   "#fed778",
+   "#febb47",
+   "#fe9829",
+   "#f07818",
+   "#d85a09",
+   "#b84203",
+   "#8e3104",
+   "#662506"
+  ],
+  "alias": "ylorbr"
+ },
+ "hypsometric": {
+  "kind": "sequential",
+  "source": "kharita",
+  "colors": [
+   "#2e6b34",
+   "#5f9a44",
+   "#a7c46a",
+   "#e3dd9c",
+   "#d8b276",
+   "#b0815a",
+   "#86644f",
+   "#f4f1ec"
+  ],
+  "alias": "terrain"
  }
 }

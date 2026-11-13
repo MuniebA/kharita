@@ -7,7 +7,14 @@ from kharita.basemaps import HOSTED
 from kharita.errors import BindingError, StyleSyntaxError
 from kharita.palette import get_ramp
 from kharita.registry import BUILTIN_PRESETS, USER_PRESETS, UTILITIES, Utility
-from kharita.spec import DEFAULT_NULL, DEFAULT_NUMERIC, DEFAULT_TEXT, LEGEND_POSITIONS, StyleSpec
+from kharita.spec import (
+    DEFAULT_NULL,
+    DEFAULT_NUMERIC,
+    DEFAULT_TEXT,
+    LEGEND_POSITIONS,
+    THEME_RAMPS,
+    StyleSpec,
+)
 from kharita.tokenizer import Token, tokenize
 
 MAX_PRESET_DEPTH = 5
@@ -122,7 +129,8 @@ def _check(spec: StyleSpec, style: str) -> None:
     if spec.extrude_max is not None and spec.extrude_by is None:
         fail("extrude_max", "extrude-max needs extrude-[column] to scale.")
     if spec.basemap in HOSTED or spec.basemap == "none":
-        for group in ("relief", "buildings", "labels"):
+        groups = ("relief", "buildings", "labels", *(f"element_{n}" for n in spec.elements))
+        for group in groups:
             if group in spec.origins:
                 fail(group, f"'{spec.origins[group][0].text}' changes a kharita basemap, but "
                             f"basemap-{spec.basemap} is not one; use paper, midnight, mono, "
@@ -229,9 +237,11 @@ def explain(style: str) -> Explanation:
     if data_by is not None:
         target = "fill" if s.fill_by is not None else "stroke"
         rows.append((target, f"data: {data_by}", src(target)))
+        numeric_default = THEME_RAMPS.get(s.theme, DEFAULT_NUMERIC[0])
         ramp = f"{s.ramp}{' reversed' if s.ramp_reverse else ''}" if s.ramp else (
-            f"{DEFAULT_NUMERIC[0]} for numbers, {DEFAULT_TEXT[0]} for text")
-        rows.append(("ramp", ramp, src("ramp")))
+            f"{numeric_default} for numbers, {DEFAULT_TEXT[0]} for text")
+        rows.append(("ramp", ramp, src("ramp") if s.ramp else (src("theme") if s.theme
+                                                                 else "default")))
         default_scheme = "quantiles, 5 classes for numbers; categorical for text"
         scheme = str(s.scheme) if s.scheme else default_scheme
         rows.append(("scheme", scheme, src("scheme")))
