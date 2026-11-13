@@ -10,7 +10,8 @@ DEFAULT_NULL = "gray-300"
 DEFAULT_NUMERIC = ("viridis", "q5")
 DEFAULT_TEXT = ("set2", "cat")
 # Default numeric ramp each theme gives data it colours; kh.theme adds more
-THEME_RAMPS = {"paper": "ylorrd", "midnight": "viridis", "mono": "blues", "neon": "plasma"}
+THEME_RAMPS = {"paper": "ylorrd", "midnight": "viridis", "mono": "blues", "neon": "plasma",
+               "topo": "terrain", "satellite": "plasma", "hybrid": "plasma"}
 # Map elements a style can recolour, in the order kh.help lists them
 ELEMENTS = ("land", "water", "rivers", "parks", "roads", "streets", "buildings", "borders",
             "admin", "labels")
@@ -51,6 +52,12 @@ class StyleSpec:
     stroke_by: Expr | None = None
     stroke_width: float | None = None
     size: float | None = None
+    size_by: Expr | None = None
+    size_max: float | None = None
+    width_by: Expr | None = None
+    width_max: float | None = None
+    dash: tuple[float, float] | None = None
+    label_by: str | None = None
     opacity: float | None = None
     highlight: RGBA | None = None
     null: RGBA | None = None
@@ -78,8 +85,10 @@ class StyleSpec:
     def columns(self) -> tuple[str, ...]:
         # Every column the style reads, in first-seen order
         found: list[str] = []
-        for expr in (self.fill_by, self.stroke_by, self.extrude_by):
+        for expr in (self.fill_by, self.stroke_by, self.extrude_by, self.size_by, self.width_by):
             if expr:
                 found.extend(expr.columns)
         found.extend(self.tooltip or ())
+        if self.label_by:
+            found.append(self.label_by)
         return tuple(dict.fromkeys(found))

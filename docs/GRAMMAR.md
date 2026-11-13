@@ -22,6 +22,9 @@ kh.map(states, "fill-[pop/area] ramp-ylorrd scheme-q5 stroke-1 stroke-white", le
 | `kh.parse`, `kh.explain`, `kh.validate`, `kh.define`, `kh.help` | The style language tools |
 | `kh.colors(family=None)`, `kh.ramps(kind=None, search=None, source=None)` | Every colour shade, or every ramp, as swatches in the notebook; `.names` lists them, `.to_html(path)` saves a page |
 | `kh.check_ramp(name)` | Whether a ramp's lightness steps are even and whether it is safe for colour-blind readers |
+| `kh.contours(where, interval=None, zoom=None, index_every=5, detail="medium", smooth=None)` | Contour lines over a GeoDataFrame's extent or a `(west, south, east, north)` box: a GeoDataFrame with `elevation`, `index` and `weight` columns, traced from the open Mapzen terrain tiles. `detail` is `low`, `medium` or `high`; `smooth` sets the blur in metres (0 for raw lines). Needs `pip install kharita[terrain]` |
+| `kh.imagery(source=2016, attribution=None, max_zoom=14)` | The imagery behind `basemap-satellite` and `basemap-hybrid`: a Sentinel-2 cloudless year, or your own `{z}/{x}/{y}` tile URL with its attribution |
+| `kh.compare(m1, m2, ..., link=True)` | Maps side by side in the notebook; linked maps pan and zoom together |
 | `kh.palette(name, colors, kind="sequential")` | Registers your own ramp as `ramp-<name>` |
 | `kh.theme(name, base="paper", ramp=None, **elements)` | Registers your own theme as `theme-<name>` and `basemap-<name>` |
 
@@ -40,6 +43,12 @@ A colour is `<family>-<shade>` (22 families, shades 50 to 950), `white`, `black`
 | `stroke-<n>` | Outline or line width in pixels | `stroke-2` |
 | `stroke-[<expr>]` | Line colour by data, for line layers | `stroke-[speed]` |
 | `size-<n>` | Point radius in pixels | `size-6` |
+| `size-[<expr>]` | Circles sized by data: area grows with the value, with a nested-circle key in the legend. Points only; turn polygons into points with `gdf.representative_point()` | `size-[pop]` |
+| `size-max-<n>` | Radius of the largest circle (default 24) | `size-max-30` |
+| `width-[<expr>]` | Line or outline width by data, never thinner than half a pixel, with a key in the legend | `width-[rank]` |
+| `width-max-<n>` | Width of the widest line (default 8) | `width-max-10` |
+| `dash-<on>-<off>`, `dash-<n>` | Dashed lines and outlines; lengths are in line widths | `dash-4-2` |
+| `label-[<col>]` | Your own labels, placed by the map so they never overlap: inside polygons, beside points, along lines. Needs a kharita basemap | `label-[name]` |
 | `opacity-<n>` | Whole-layer opacity, 0 to 100 | `opacity-80` |
 | `highlight-<colour>` | Colour of the feature under the mouse | `highlight-amber-400` |
 | `null-<colour>` | Colour for missing values (default `gray-300`) | `null-zinc-200` |
@@ -130,12 +139,15 @@ Every basemap is keyless. Three are hosted by OpenFreeMap and used as they are; 
 | `basemap-mono` | Neutral greys | Theme |
 | `basemap-neon` | Dark violet | Theme |
 | `basemap-muted` | Pale, no labels | Theme |
+| `basemap-topo` | Near-white, warm vegetation, red roads; made for contours | Theme |
+| `basemap-satellite` | Sentinel-2 cloudless imagery, no labels | Theme (imagery) |
+| `basemap-hybrid` | Imagery with roads, borders and labels | Theme (imagery) |
 | `basemap-terrain` | Paper with tinted relief | Theme |
 | `basemap-none` | Nothing | |
 
 | Utility | Meaning | Example |
 | --- | --- | --- |
-| `theme-<name>` | Basemap, default ramp and legend style together: `paper` (ylorrd), `midnight` (viridis), `mono` (blues), `neon` (plasma) | `theme-midnight` |
+| `theme-<name>` | Basemap, default ramp and legend style together: `paper` (ylorrd), `midnight` (viridis), `mono` (blues), `neon` (plasma), `topo` (terrain) | `theme-midnight` |
 | `relief-soft` | Shaded terrain, one light source | `relief-soft` |
 | `relief-steps` | Flat colour bands by height, like a layered model, with a faint shade | `relief-steps` |
 | `relief-sharp` | Shaded terrain lit from four directions; crisper ridges | `relief-sharp` |
@@ -169,6 +181,21 @@ A warning fires when a class colour is almost the basemap's ground colour, since
 - A typed `ramp-` always beats the theme's default ramp. In a map with several layers, the first layer to set the basemap, theme, relief, buildings or labels wins.
 - Elevation comes from the Mapzen Terrain Tiles on AWS Open Data; place data from OpenStreetMap via OpenFreeMap. Both credits appear on the map.
 
+## Contours
+
+```python
+c = kh.contours(states[states["key"] == "SDN_09"], interval=100)
+m = kh.Map()
+m.add(c, "preset-topo basemap-topo")
+m.add(c[c["index"]], "stroke-transparent label-[elevation] legend-none")
+```
+
+Index contours (every fifth line by default) have `weight` 2 and draw twice as thick under `preset-topo`; labelling them gives the classic topographic look. Colour by height instead with `stroke-[elevation] ramp-terrain`. Contours combine with `relief-` designs on the basemap, and with `basemap-satellite` or `basemap-hybrid` (use a light stroke such as `stroke-amber-200`).
+
+Contours are generalised the way printed maps are: the elevation is blurred, lines shorter than eight blur widths are dropped, and the rest are simplified and rounded. `detail="medium"` blurs at least 300 m, or a three-hundredth of the area's width; `low` doubles that and `high` halves it.
+
+Imagery: Sentinel-2 cloudless 2016 by EOX IT Services GmbH is free for any use with credit (CC BY-SA 4.0); `kh.imagery(2024)` switches to a newer year, which EOX licenses for non-commercial use only.
+
 ## Reuse
 
 | Feature | Example |
@@ -176,6 +203,7 @@ A warning fires when a class colour is almost the basemap's ground colour, since
 | Built-in presets | `preset-choropleth`: `scheme-q5 stroke-1 stroke-white null-gray-300 highlight-amber-400` |
 | | `preset-outline`: `fill-transparent stroke-2 stroke-slate-700` |
 | | `preset-points`: `size-4 stroke-1 stroke-white highlight-amber-400` |
+| | `preset-topo`: `stroke-orange-800/80 width-[weight] width-max-1.6 legend-none`, for `kh.contours` output |
 | Your own named style | `kh.define("roads", "stroke-2 stroke-slate-400")`, then `preset-roads` |
 
 Explicit utilities always override a preset's, wherever they appear in the string: `preset-choropleth scheme-e4` uses equal intervals. A preset's scheme also gives way to a categorical ramp you type and to text data, so `preset-choropleth fill-[region] ramp-set2` works.

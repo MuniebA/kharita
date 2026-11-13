@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "kharita"
-version = "0.0.8"
+version = "0.0.10"
 description = "Classified, legended Lonboard maps from one style string."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -28,6 +28,12 @@ dev = [
     "ruff>=0.6",
     "jupyterlab>=4",
     "openpyxl>=3.1",
+    "contourpy>=1.2",
+]
+# kh.contours: reads elevation tiles and traces contour lines
+terrain = [
+    "contourpy>=1.2",
+    "pillow>=10",
 ]
 # Only for notebooks/00b_city_data.ipynb, which downloads Overture Maps data
 demo = [

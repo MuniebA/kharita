@@ -1,6 +1,6 @@
 # Phase 5: Design system
 
-**Status:** built, 13 Nov 2026, 793 tests passing; closes once `notebooks/05d_colours_and_elements.ipynb` passes on the laptop. Spike 12 Nov; 5b, 5c and 5d built 13 Nov.
+**Status:** closed, 13 Nov 2026. 793 tests passing at close; every check notebook (05, 05b, 05c, 05d) passed on the laptop. Spike 12 Nov; 5b, 5c and 5d built 13 Nov.
 
 ## Goal
 
@@ -106,6 +106,10 @@ Six of seven passed. Test D failed: bar legend labels such as 5,274,321 ran past
 ## Tests (5d)
 
 `test_colours.py`, 174 cases: hex parsing, every ramp passes the checks, family, two-family and inline ramps, IPC and WorldCover keys, fixed colours and order, palettes and themes registered and used, every element changes only its own layer, elements refused on hosted basemaps, stepped relief bands, the ground warning, galleries, compact numbers. Every theme, relief and element combination also passed MapLibre 5's style validator and loaded in a browser.
+
+## 5d check (`notebooks/05d_colours_and_elements.ipynb`)
+
+All 13 tests passed, including test K, the bar legend fix from 5c. Request from test J: a topographic contour design (dense brown contour lines, heavier labelled index lines, warm tints), built in Phase 6a.
 
 ## Known issues
 

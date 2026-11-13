@@ -11,6 +11,7 @@ OPENFREEMAP_GLYPHS = "https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pb
 TERRARIUM_TILES = "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"
 FONT = ["Noto Sans Regular"]
 FIRST_LABEL = "label-road"
+DATA_LABEL = "kh-label"
 VECTOR_ATTRIBUTION = (
     '<a href="https://openfreemap.org" target="_blank">OpenFreeMap</a> '
     '<a href="https://www.openmaptiles.org/" target="_blank">&copy; OpenMapTiles</a> '
@@ -20,6 +21,14 @@ TERRAIN_ATTRIBUTION = (
     'Elevation: <a href="https://registry.opendata.aws/terrain-tiles/" target="_blank">'
     "Mapzen Terrain Tiles</a>"
 )
+EOX_TILES = "https://tiles.maps.eox.at/wmts/1.0.0/{layer}/default/g/{{z}}/{{y}}/{{x}}.jpg"
+EOX_ATTRIBUTION = ('Sentinel-2 cloudless by <a href="https://s2maps.eu" target="_blank">EOX IT '
+                   "Services GmbH</a> (Contains modified Copernicus Sentinel data {year})")
+# Sentinel-2 cloudless years; 2016 is CC BY-SA 4.0, later years are for non-commercial use only
+EOX_YEARS = {2016: "s2cloudless_3857", 2017: "s2cloudless-2017_3857",
+             2018: "s2cloudless-2018_3857", 2020: "s2cloudless-2020_3857",
+             2021: "s2cloudless-2021_3857", 2022: "s2cloudless-2022_3857",
+             2023: "s2cloudless-2023_3857", 2024: "s2cloudless-2024_3857"}
 MAJOR_ROADS = ["motorway", "trunk", "primary", "secondary"]
 MINOR_ROADS = ["tertiary", "minor", "service"]
 
@@ -54,6 +63,7 @@ class Theme:
     building: str
     tint: tuple[str, ...]
     labels: bool = True
+    imagery: bool = False
 
 
 THEMES = {
@@ -73,11 +83,25 @@ THEMES = {
                   "#3b1670", "#2a0f52", "#1f0b40", "#c4b5fd", "#14062b", "#000000", "#8b5cf6",
                   "#241048", ("#14062b", "#1c0a3d", "#26104f", "#331566", "#451c80",
                               "#5b249c", "#7c3aed")),
+    "topo": Theme("topo", False, "#fdfcf8", "#cde4ef", "#6aa6c8", "#f8e6b0", "#8a8378",
+                  "#bdb6aa", "#d4442a", "#eab3a3", "#4a3b2c", "#fdfcf8", "#6b5843", "#ffffff",
+                  "#ebe5d9", ("#fdfcf8", "#f6f0dc", "#eee2bf", "#e4d0a2", "#d6ba86", "#c4a170",
+                              "#f1ece4")),
     "muted": Theme("muted", False, "#f1f1ef", "#dde3e6", "#cfd8dc", "#ecebe7", "#b9b9b4",
                    "#d9d8d3", "#e6e5e1", "#ebeae6", "#7a7a75", "#f1f1ef", "#55554f", "#ffffff",
                    "#e3e2dd", ("#f1f1ef", "#eae9e3", "#e1dfd6", "#d6d3c8", "#c9c5b8",
                                "#bab5a8", "#e8e7e3"), labels=False),
+    "satellite": Theme("satellite", True, "#10140f", "#10140f", "#7dd3fc", "#10140f", "#ffffff",
+                       "#d4d4d4", "#fde68a", "#ffffff", "#ffffff", "#111111", "#000000",
+                       "#ffffff", "#e5e5e5", ("#fdfcf8", "#f6f0dc", "#eee2bf", "#e4d0a2",
+                                              "#d6ba86", "#c4a170", "#f1ece4"),
+                       labels=False, imagery=True),
 }
+# Satellite imagery with roads, borders and labels drawn over it
+THEMES["hybrid"] = replace(THEMES["satellite"], name="hybrid", labels=True)
+# The imagery satellite and hybrid draw; kh.imagery changes it
+IMAGERY = {"tiles": EOX_TILES.format(layer=EOX_YEARS[2016]),
+           "attribution": EOX_ATTRIBUTION.format(year=2016), "maxzoom": 14}
 # Names that pick a theme plus a relief design
 ALIASES = {"terrain": ("paper", "tint")}
 BASEMAP_NAMES = (*HOSTED, *THEMES, *ALIASES, "none")
@@ -215,6 +239,42 @@ def _base_layers(t: Theme) -> list[dict]:
     ]
 
 
+def imagery(source: str | int = 2016, attribution: str | None = None,
+            max_zoom: int = 14) -> dict:
+    """Choose the imagery for basemap-satellite and basemap-hybrid.
+
+    source is a Sentinel-2 cloudless year (2016 is free for any use with credit; 2017 to 2024
+    are non-commercial only) or your own tile URL with {z}, {x} and {y}, such as a provider
+    you hold a key for. Returns the imagery now in use.
+    """
+    if isinstance(source, int) or str(source).isdigit():
+        year = int(source)
+        if year not in EOX_YEARS:
+            raise ValueError(f"Sentinel-2 cloudless years are {', '.join(map(str, EOX_YEARS))}, "
+                             f"got {year}.")
+        tiles, credit = EOX_TILES.format(layer=EOX_YEARS[year]), EOX_ATTRIBUTION.format(year=year)
+    else:
+        if not all(k in source for k in ("{z}", "{x}", "{y}")) or not source.startswith("http"):
+            raise ValueError("An imagery URL needs http(s) and {z}, {x} and {y}, like "
+                             "https://example.com/tiles/{z}/{x}/{y}.jpg")
+        if not attribution:
+            raise ValueError("Give the imagery's attribution= so the map credits it.")
+        tiles, credit = source, attribution
+    IMAGERY.update({"tiles": tiles, "attribution": attribution or credit, "maxzoom": max_zoom})
+    return dict(IMAGERY)
+
+
+def _imagery_layers(t: Theme) -> list[dict]:
+    # Roads and borders stay on hybrid, a little see-through so the ground shows
+    if not t.labels:
+        return []
+    keep = ("waterway", "road-major", "road-minor", "boundary-state", "boundary-country")
+    layers = [lyr for lyr in _base_layers(t) if lyr["id"] in keep]
+    for lyr in layers:
+        lyr["paint"]["line-opacity"] = 0.75
+    return layers
+
+
 def _building_layer(t: Theme, buildings: str) -> list[dict]:
     # Footprints from zoom 13, or extruded to their mapped height
     src = {"source": "openmaptiles", "source-layer": "building", "minzoom": 13}
@@ -265,8 +325,29 @@ def _label_layers(t: Theme) -> list[dict]:
     ]
 
 
+def _data_label_layers(t: Theme, data_labels: list[dict]) -> tuple[dict, list[dict]]:
+    # Sources and symbol layers for label-[...]: drawn last, so above the data and the basemap
+    sources, layers = {}, []
+    for i, lab in enumerate(data_labels):
+        sid = f"{DATA_LABEL}-{i}"
+        sources[sid] = {"type": "geojson", "data": lab["geojson"]}
+        line = lab["placement"] == "line"
+        layout = {"text-field": ["get", "t"], "text-font": FONT,
+                  "text-size": 11 if line else 12.5, "text-max-width": 9,
+                  "symbol-placement": "line" if line else "point"}
+        if lab["placement"] == "beside":
+            # Beside points, so the label never covers its own symbol
+            layout.update({"text-variable-anchor": ["top", "bottom", "left", "right"],
+                           "text-radial-offset": 0.9})
+        layers.append({"id": sid, "type": "symbol", "source": sid, "layout": layout,
+                       "paint": {"text-color": lab.get("color") or t.label,
+                                 "text-halo-color": t.halo, "text-halo-width": 1.8}})
+    return sources, layers
+
+
 def style(theme: str = "paper", labels: bool | None = None, hillshade: bool = False,
-          relief: str | None = None, buildings: str = "flat", elements: dict | None = None) -> dict:
+          relief: str | None = None, buildings: str = "flat", elements: dict | None = None,
+          data_labels: list[dict] | None = None) -> dict:
     """MapLibre style JSON for a theme; labels default to the theme's own setting."""
     name, alias_relief = resolve(theme)
     elements = elements or {}
@@ -284,17 +365,33 @@ def style(theme: str = "paper", labels: bool | None = None, hillshade: bool = Fa
                                       "attribution": VECTOR_ATTRIBUTION}}
     layers: list[dict] = [{"id": "background", "type": "background",
                            "paint": {"background-color": t.background}}]
+    if t.imagery:
+        sources["imagery"] = {"type": "raster", "tiles": [IMAGERY["tiles"]], "tileSize": 256,
+                              "maxzoom": IMAGERY["maxzoom"],
+                              "attribution": IMAGERY["attribution"]}
+        layers.append({"id": "imagery", "type": "raster", "source": "imagery",
+                       "paint": {"raster-fade-duration": 0}})
     if relief is not None:
         sources["terrain"] = {"type": "raster-dem", "tiles": [TERRARIUM_TILES], "tileSize": 256,
                               "maxzoom": 15, "encoding": "terrarium",
                               "attribution": TERRAIN_ATTRIBUTION}
         layers.extend(_relief_layers(t, relief))
-    layers.extend(_base_layers(t))
-    layers.extend(_building_layer(t, buildings))
+    if t.imagery:
+        layers.extend(_imagery_layers(t))
+        # Flat footprints would hide the roofs the imagery already shows
+        layers.extend(_building_layer(t, buildings) if buildings == "3d" else [])
+    else:
+        layers.extend(_base_layers(t))
+        layers.extend(_building_layer(t, buildings))
     out = {"version": 8, "name": f"kharita {theme}", "sources": sources}
-    if show_labels:
+    if show_labels or data_labels:
         out["glyphs"] = OPENFREEMAP_GLYPHS
+    if show_labels:
         layers.extend(_label_layers(t))
+    if data_labels:
+        extra_sources, extra_layers = _data_label_layers(t, data_labels)
+        sources.update(extra_sources)
+        layers.extend(extra_layers)
     hidden = {lid for k, v in elements.items() if v == "none" for lid in ELEMENT_LAYERS.get(k, ())}
     out["layers"] = [lyr for lyr in layers if lyr["id"] not in hidden]
     return out
@@ -331,9 +428,10 @@ def _theme_basemap_class():
 
 def basemap(theme: str = "paper", labels: bool | None = None, hillshade: bool = False,
             mode: str = "overlaid", encoding: str = "base64", relief: str | None = None,
-            buildings: str = "flat", elements: dict | None = None):
+            buildings: str = "flat", elements: dict | None = None,
+            data_labels: list[dict] | None = None):
     """A Lonboard basemap drawing a kharita theme; encoding is base64, percent or object."""
     s = style(theme, labels=labels, hillshade=hillshade, relief=relief, buildings=buildings,
-              elements=elements)
+              elements=elements, data_labels=data_labels)
     value = s if encoding == "object" else data_url(s, encoding=encoding)
     return _theme_basemap_class()(style=value, mode=mode)

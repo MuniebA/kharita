@@ -22,6 +22,10 @@ from kharita.spec import (
 
 FEW_DISTINCT = 12
 DEFAULT_HEIGHT_SHARE = 0.1
+# Largest circle radius and widest line, in pixels, unless size-max or width-max says otherwise
+DEFAULT_SIZE_MAX = 24.0
+DEFAULT_WIDTH_MAX = 8.0
+MIN_WIDTH = 0.5
 
 
 @dataclass(frozen=True)
@@ -35,6 +39,12 @@ class Bound:
     elevation: np.ndarray | None = None
     elevation_max: float | None = None
     elevation_top: float | None = None
+    radius: np.ndarray | None = None
+    radius_max: float | None = None
+    radius_top: float | None = None
+    width: np.ndarray | None = None
+    width_max: float | None = None
+    width_top: float | None = None
 
 
 def _warn(message: str) -> None:
@@ -168,6 +178,35 @@ def _elevation(spec: StyleSpec, data: pd.DataFrame) -> tuple[np.ndarray, float, 
     return (clean / top * tallest).astype(np.float32), tallest, top
 
 
+def _scaled(data: pd.DataFrame, expr: Expr, what: str) -> tuple[np.ndarray, float]:
+    # Non-negative values for size or width, missing and negative as 0, plus the largest value
+    values, _ = evaluate(data, expr)
+    if not np.isfinite(values).any():
+        raise BindingError(f"[{expr}] has no values to size by.", column=expr.column)
+    if (values < 0).any():
+        _warn(f"{int((values < 0).sum())} negative values in [{expr}] get no {what}.")
+    clean = np.where(np.isfinite(values) & (values > 0), values, 0.0)
+    return clean, float(clean.max())
+
+
+def _radius(spec: StyleSpec, data: pd.DataFrame) -> tuple[np.ndarray, float, float]:
+    # Circle radius in pixels; area, not radius, grows with the value
+    clean, top = _scaled(data, spec.size_by, "circle")
+    biggest = spec.size_max or DEFAULT_SIZE_MAX
+    if top == 0:
+        return np.zeros(len(clean), dtype=np.float32), biggest, 0.0
+    return (biggest * np.sqrt(clean / top)).astype(np.float32), biggest, top
+
+
+def _width(spec: StyleSpec, data: pd.DataFrame) -> tuple[np.ndarray, float, float]:
+    # Line width in pixels, proportional to the value, never thinner than half a pixel
+    clean, top = _scaled(data, spec.width_by, "width")
+    widest = spec.width_max or DEFAULT_WIDTH_MAX
+    if top == 0:
+        return np.full(len(clean), MIN_WIDTH, dtype=np.float32), widest, 0.0
+    return np.maximum(widest * clean / top, MIN_WIDTH).astype(np.float32), widest, top
+
+
 def bind(data: pd.DataFrame, style, colors: dict | None = None, order: list | None = None) -> Bound:
     """Compile a style against a table; colors and order fix category colours and their order."""
     if not isinstance(data, pd.DataFrame):
@@ -181,6 +220,11 @@ def bind(data: pd.DataFrame, style, colors: dict | None = None, order: list | No
                             else (None, None))
     elevation, tallest, top = (_elevation(spec, data) if spec.extrude_by is not None
                                else (None, None, None))
+    radius, radius_max, radius_top = (_radius(spec, data) if spec.size_by is not None
+                                      else (None, None, None))
+    width, width_max, width_top = (_width(spec, data) if spec.width_by is not None
+                                   else (None, None, None))
     return Bound(spec=spec, n=len(data), fill=fill, fill_scale=fill_scale, stroke=stroke,
                  stroke_scale=stroke_scale, elevation=elevation, elevation_max=tallest,
-                 elevation_top=top)
+                 elevation_top=top, radius=radius, radius_max=radius_max, radius_top=radius_top,
+                 width=width, width_max=width_max, width_top=width_top)

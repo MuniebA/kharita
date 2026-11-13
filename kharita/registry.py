@@ -68,7 +68,37 @@ def _stroke(b, rest: str) -> None:
 
 
 def _size(b, rest: str) -> None:
-    b.set("size", size=_positive(rest, "Size"))
+    if rest.startswith("max-"):
+        b.set("size_max", size_max=_positive(rest[4:], "Largest circle radius"))
+    elif rest.startswith("["):
+        b.set("size", size_by=parse_expr(_bracket(rest)))
+    else:
+        b.set("size", size=_positive(rest, "Size"))
+
+
+def _width(b, rest: str) -> None:
+    if rest.startswith("max-"):
+        b.set("width_max", width_max=_positive(rest[4:], "Widest line"))
+    elif rest.startswith("["):
+        b.set("width", width_by=parse_expr(_bracket(rest)))
+    else:
+        raise ValueError(f"Use width-[column] for width by data, or stroke-{rest} for one width.")
+
+
+def _dash(b, rest: str) -> None:
+    parts = rest.split("-")
+    if len(parts) > 2 or not all(is_number(x) and float(x) > 0 for x in parts):
+        raise ValueError("Use dash-<on>-<off> in line widths, like dash-4-2, or dash-3 for equal "
+                         "dashes and gaps.")
+    on = float(parts[0])
+    b.set("dash", dash=(on, float(parts[1]) if len(parts) == 2 else on))
+
+
+def _label(b, rest: str) -> None:
+    cols = parse_columns(_bracket(rest))
+    if len(cols) != 1:
+        raise ValueError("label-[...] takes one column, like label-[name].")
+    b.set("label", label_by=cols[0])
 
 
 def _opacity(b, rest: str) -> None:
@@ -228,8 +258,19 @@ UTILITIES: dict[str, Utility] = {
                 ("stroke-white", "stroke-slate-300/50", "stroke-1", "stroke-1.5", "stroke-[speed]"),
                 ("stroke-0", "stroke--1", "stroke-whte", "stroke-[]"),
                 _stroke),
-        Utility("size", "size-<pixels>", "Point radius in pixels",
-                ("size-6", "size-2.5"), ("size-0", "size-big"), _size),
+        Utility("size", "size-<pixels> | size-[<expr>] | size-max-<pixels>",
+                "Point radius in pixels, or circles sized by data (area grows with the value)",
+                ("size-6", "size-2.5", "size-[pop]", "size-max-30"),
+                ("size-0", "size-big", "size-[]", "size-max-0"), _size),
+        Utility("width", "width-[<expr>] | width-max-<pixels>",
+                "Line or outline width by data, the widest set by width-max",
+                ("width-[rank]", "width-[flow/1000]", "width-max-10"),
+                ("width-3", "width-[]", "width-max-0"), _width),
+        Utility("dash", "dash-<on>-<off> | dash-<n>", "Dashed lines and outlines, in line widths",
+                ("dash-4-2", "dash-3", "dash-1.5-1"), ("dash-0", "dash-a-b", "dash-1-2-3"), _dash),
+        Utility("label", "label-[<col>]", "Your own labels from a column, placed by the map so "
+                "they never overlap; needs a kharita basemap",
+                ("label-[name]", "label-['state name']"), ("label-name", "label-[a,b]"), _label),
         Utility("opacity", "opacity-<0-100>", "Whole-layer opacity",
                 ("opacity-80", "opacity-0", "opacity-100"), ("opacity-150", "opacity-0.5"),
                 _opacity),
@@ -252,9 +293,11 @@ UTILITIES: dict[str, Utility] = {
                 ("highlight-amber-400", "highlight-amber-400/80"), ("highlight-amber",),
                 _highlight),
         Utility("basemap", "basemap-<name>",
-                "Basemap: light, dark, fiord, paper, midnight, mono, neon, muted, terrain, none",
+                "Basemap: light, dark, fiord, paper, midnight, mono, neon, topo, muted, satellite, "
+                "hybrid, terrain, none",
                 ("basemap-light", "basemap-dark", "basemap-fiord", "basemap-paper",
-                 "basemap-midnight", "basemap-terrain", "basemap-none"), ("basemap-satellite",),
+                 "basemap-midnight", "basemap-satellite", "basemap-hybrid", "basemap-terrain",
+                 "basemap-none"), ("basemap-google",),
                 _basemap),
         Utility("theme", "theme-paper | theme-midnight | theme-mono | theme-neon",
                 "Basemap, default ramp and legend style together",
@@ -295,7 +338,8 @@ UTILITIES: dict[str, Utility] = {
                 ("extrude-pop", "extrude-max-0", "extrude-max-tall"),
                 _extrude),
         Utility("preset", "preset-<name>", "Expand a built-in or kh.define() style",
-                ("preset-choropleth", "preset-outline", "preset-points"), ("preset-nothing",),
+                ("preset-choropleth", "preset-outline", "preset-points", "preset-topo"),
+                ("preset-nothing",),
                 None),
     )
 }
@@ -304,5 +348,7 @@ BUILTIN_PRESETS: dict[str, str] = {
     "choropleth": "scheme-q5 stroke-1 stroke-white null-gray-300 highlight-amber-400",
     "outline": "fill-transparent stroke-2 stroke-slate-700",
     "points": "size-4 stroke-1 stroke-white highlight-amber-400",
+    # For kh.contours output: thin brown lines, index contours twice as thick
+    "topo": "stroke-orange-800/80 width-[weight] width-max-1.6 legend-none",
 }
 USER_PRESETS: dict[str, str] = {}

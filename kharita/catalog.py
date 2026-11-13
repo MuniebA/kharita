@@ -128,7 +128,7 @@ def theme(name: str, base: str = "paper", ramp: str | None = None, labels: bool 
           **elements) -> str:
     """Register your own theme from a base theme and element colours, then use theme-<name>."""
     if name in kb.HOSTED or name in kb.ALIASES or name == "none" or name in (
-            "paper", "midnight", "mono", "neon", "muted"):
+            "paper", "midnight", "mono", "neon", "muted", "topo"):
         raise ValueError(f"'{name}' is a built-in basemap; choose another name.")
     if not name.replace("_", "").isalnum() or not name.islower():
         raise ValueError(f"Theme names are lowercase letters and digits, got '{name}'.")

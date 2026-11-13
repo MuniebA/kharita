@@ -92,6 +92,21 @@ def _common(spec) -> dict:
 EDGE_SHADE = 0.7
 
 
+def _dashed(kw: dict, spec) -> None:
+    # Dashes through deck.gl's PathStyleExtension, sized in line widths
+    if spec.dash is not None:
+        from lonboard.layer_extension import PathStyleExtension
+
+        kw.update(extensions=[PathStyleExtension(dash=True)], get_dash_array=list(spec.dash),
+                  dash_justified=True)
+
+
+def _line_widths(b: Bound, rows, constant: float):
+    # Width per row from width-[...], else one width for the layer
+    picked = _pick(b.width, rows)
+    return picked if picked is not None else constant
+
+
 def _edges(fill, spec) -> np.ndarray | list:
     # Wireframe colour for extruded polygons: the fill a shade darker, never default white
     if spec.stroke is not None:
@@ -113,7 +128,7 @@ def _polygon_layer(sub, spec, b: Bound, rows):
     kw.update(
         get_fill_color=fill if fill is not None else _rgba(spec.fill or POLYGON_FILL),
         get_line_color=stroke if stroke is not None else _rgba(spec.stroke or POLYGON_STROKE),
-        get_line_width=spec.stroke_width or POLYGON_STROKE_WIDTH,
+        get_line_width=_line_widths(b, rows, spec.stroke_width or POLYGON_STROKE_WIDTH),
         line_width_units="pixels",
         stroked=True,
     )
@@ -121,6 +136,7 @@ def _polygon_layer(sub, spec, b: Bound, rows):
         kw.update(extruded=True, get_elevation=_pick(b.elevation, rows), wireframe=True)
         if stroke is None:
             kw["get_line_color"] = _edges(kw["get_fill_color"], spec)
+    _dashed(kw, spec)
     return PolygonLayer.from_geopandas(sub, **kw)
 
 
@@ -132,9 +148,16 @@ def _line_layer(sub, spec, b: Bound, rows):
     if color is None:
         color = _rgba(spec.stroke or spec.fill or LINE_COLOR)
     kw = _common(spec)
-    kw.update(get_color=color, get_width=spec.stroke_width or LINE_WIDTH, width_units="pixels",
-              cap_rounded=True, joint_rounded=True)
+    kw.update(get_color=color, get_width=_line_widths(b, rows, spec.stroke_width or LINE_WIDTH),
+              width_units="pixels", cap_rounded=True, joint_rounded=True)
+    _dashed(kw, spec)
     return PathLayer.from_geopandas(sub, **kw)
+
+
+def _point_radii(b: Bound, rows, spec):
+    # Radius per row from size-[...], else one radius for the layer
+    picked = _pick(b.radius, rows)
+    return picked if picked is not None else spec.size or POINT_SIZE
 
 
 def _point_layer(sub, spec, b: Bound, rows):
@@ -145,29 +168,30 @@ def _point_layer(sub, spec, b: Bound, rows):
     kw = _common(spec)
     kw.update(
         get_fill_color=fill if fill is not None else _rgba(spec.fill or POINT_FILL),
-        get_radius=spec.size or POINT_SIZE,
+        get_radius=_point_radii(b, rows, spec),
         radius_units="pixels",
     )
-    if stroke is not None or spec.stroke is not None or spec.stroke_width is not None:
+    widths = b.width is not None
+    if stroke is not None or spec.stroke is not None or spec.stroke_width is not None or widths:
         kw.update(
             stroked=True,
             get_line_color=stroke if stroke is not None else _rgba(spec.stroke or "white"),
-            get_line_width=spec.stroke_width or 1.0,
+            get_line_width=_line_widths(b, rows, spec.stroke_width or 1.0),
             line_width_units="pixels",
         )
     return ScatterplotLayer.from_geopandas(sub, **kw)
 
 
-def _halo_layers(sub, spec, kind: str) -> list:
+def _halo_layers(sub, spec, kind: str, b: Bound, rows) -> list:
     # Faint wide bands drawn under the layer: along outlines, lines or around points
     from lonboard import PathLayer, ScatterplotLayer
 
-    r, g, b, a = spec.halo
+    hr, hg, hb, ha = spec.halo
     out = []
     if kind == "points":
-        base = spec.size or POINT_SIZE
+        base = _point_radii(b, rows, spec)
         for extra, share in HALO_BANDS:
-            color = [r, g, b, round(a * share)]
+            color = [hr, hg, hb, round(ha * share)]
             out.append(ScatterplotLayer.from_geopandas(
                 sub[["geometry"]], get_fill_color=color, get_radius=base + extra,
                 radius_units="pixels", pickable=False))
@@ -179,7 +203,7 @@ def _halo_layers(sub, spec, kind: str) -> list:
     else:
         base = spec.stroke_width or LINE_WIDTH
     for extra, share in HALO_BANDS:
-        color = [r, g, b, round(a * share)]
+        color = [hr, hg, hb, round(ha * share)]
         out.append(PathLayer.from_geopandas(edges, get_color=color, get_width=base + extra,
                                             width_units="pixels", cap_rounded=True,
                                             joint_rounded=True, pickable=False))
@@ -207,10 +231,17 @@ def build(gdf, style, colors: dict | None = None, order: list | None = None) -> 
         mask = present & np.isin(types, names)
         if not mask.any():
             continue
+        if spec.size_by is not None and kind != "points":
+            raise BindingError(f"size-[{spec.size_by}] draws circles at points, but this table has "
+                               f"{kind}. Turn them into points first: "
+                               "gdf.assign(geometry=gdf.representative_point()).",
+                               column=spec.size_by.column)
+        if spec.dash is not None and kind == "points":
+            _warn("dash- applies to lines and outlines; point outlines stay solid.")
         rows = np.flatnonzero(mask)
         sub = _subset(gdf, rows, tooltip)
         if spec.halo is not None:
-            layers.extend(_halo_layers(sub, spec, kind))
+            layers.extend(_halo_layers(sub, spec, kind, b, rows))
         layers.append(builder(sub, spec, b, rows))
         drawn |= mask
     skipped = present & ~drawn

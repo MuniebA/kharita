@@ -7,7 +7,15 @@ from pathlib import Path
 from kharita import basemaps as kb
 from kharita.adapter import build
 from kharita.errors import KharitaWarning
-from kharita.legend import LEGEND_OPTIONS, frame_card, height_block, legend_block, legend_panel
+from kharita.legend import (
+    LEGEND_OPTIONS,
+    frame_card,
+    height_block,
+    legend_block,
+    legend_panel,
+    size_block,
+    width_block,
+)
 
 BASEMAPS = kb.BASEMAP_NAMES
 EXTRUDED_VIEW = {"pitch": 45, "bearing": -10}
@@ -57,6 +65,7 @@ class Map:
         self.labels: bool | None = None
         self.glow = False
         self.elements: dict = {}
+        self.data_labels: list[dict] = []
         self.height = height
         self.title, self.subtitle, self.source = title, subtitle, source
         self.layers: list = []
@@ -84,9 +93,12 @@ class Map:
         self.glow = self.glow or spec.glow
         for name, value in spec.elements.items():
             self.elements.setdefault(name, value)
+        if spec.label_by is not None:
+            self.data_labels.extend(_label_collections(gdf, spec))
         self._check_basemap()
         scale = b.fill_scale or b.stroke_scale
-        if spec.legend and (scale is not None or b.elevation is not None):
+        keys = (b.elevation, b.radius, b.width)
+        if spec.legend and (scale is not None or any(k is not None for k in keys)):
             if scale is not None:
                 # Build once now so a bad fmt, labels or style fails at add(), not at display
                 legend_block(scale, **options)
@@ -113,6 +125,7 @@ class Map:
         asked = [n for n in ("relief", "buildings") if getattr(self, n)]
         asked += ["labels"] if self.labels is False else []
         asked += [f"{n}-" for n in self.elements]
+        asked += ["label-[...]"] if self.data_labels else []
         if asked and not self.themed:
             raise ValueError(f"{', '.join(asked)} need a kharita basemap (paper, midnight, mono, "
                              f"neon, muted or terrain), not basemap-{self.basemap_name}.")
@@ -128,6 +141,8 @@ class Map:
         if not self.themed:
             return
         theme, _ = kb.resolve(self.basemap_name)
+        if kb.get_theme(theme).imagery:
+            return
         ground = self.elements.get("land")
         ground = kb.css_color(ground) if ground else kb.get_theme(theme).background
         if not ground.startswith("#"):
@@ -148,20 +163,22 @@ class Map:
                               stacklevel=4)
 
     def _basemap(self):
-        # Lonboard basemap, and whether kharita layers sit under its labels
+        # Lonboard basemap, and the label layer kharita layers sit under, if any
         from lonboard.basemap import MaplibreBasemap
 
         name = self.basemap_name
         if name == "none":
-            return None, False
+            return None, None
         if name in kb.HOSTED:
-            return MaplibreBasemap(style=kb.HOSTED[name]), False
+            return MaplibreBasemap(style=kb.HOSTED[name]), None
         theme, alias_relief = kb.resolve(name)
         shown = kb.get_theme(theme).labels if self.labels is None else self.labels
+        under = kb.FIRST_LABEL if shown else f"{kb.DATA_LABEL}-0" if self.data_labels else None
         bm = kb.basemap(theme, labels=self.labels, relief=self.relief or alias_relief,
                         buildings=self.buildings or "flat", elements=self.elements,
-                        mode="interleaved" if shown else "overlaid")
-        return bm, shown
+                        data_labels=self.data_labels,
+                        mode="interleaved" if under else "overlaid")
+        return bm, under
 
     @property
     def legend_position(self) -> str:
@@ -181,6 +198,12 @@ class Map:
                 blocks.append(height_block(label, b.elevation_top, b.elevation_max,
                                            fmt=opts.get("fmt") if same or scale is None else None,
                                            dark=self.dark))
+            if b.radius is not None:
+                blocks.append(size_block(str(b.spec.size_by), b.radius_top, b.radius_max,
+                                         dark=self.dark))
+            if b.width is not None:
+                blocks.append(width_block(str(b.spec.width_by), b.width_top, b.width_max,
+                                          dark=self.dark))
         return legend_panel(blocks, dark=self.dark) if blocks else ""
 
     def frame_html(self) -> str:
@@ -208,10 +231,10 @@ class Map:
                 raise ValueError("The map has no layers; call add() first.")
             tooltip = any(b.spec.tooltip for b in self.bounds)
             self._check_ground()
-            bm, under_labels = self._basemap()
+            bm, under = self._basemap()
             for lyr in self.layers:
-                # Interleaved layers draw below the first label so place names stay on top
-                lyr.before_id = kb.FIRST_LABEL if under_labels else None
+                # Interleaved layers draw below the first label so names stay on top
+                lyr.before_id = under
             extra = {}
             if self.glow:
                 if not self.dark and self.basemap_name != "none":
@@ -276,6 +299,63 @@ class Map:
         return page
 
 
+LABEL_LIMIT = 5000
+
+
+def _label_text(values) -> list:
+    # Label strings: numbers with thousands separators, missing values dropped as None
+    import pandas as pd
+
+    from kharita.classify import fmt_number
+
+    s = pd.Series(values)
+    if pd.api.types.is_numeric_dtype(s) and not pd.api.types.is_bool_dtype(s):
+        # Each label on its own: 1,200 and 50.5, never 1,200.0
+        return [None if pd.isna(v) else fmt_number(float(v), 0 if float(v).is_integer() else 1)
+                for v in s]
+    return [None if pd.isna(v) else str(v) for v in s]
+
+
+def _label_collections(gdf, spec) -> list[dict]:
+    # GeoJSON for label-[...]: polygons at an inner point, points beside the symbol, lines along
+    import json
+
+    import shapely
+
+    sub = gdf[[spec.label_by, gdf.geometry.name]].copy()
+    if sub.crs is not None and not sub.crs.equals(4326):
+        sub = sub.to_crs(4326)
+    texts = _label_text(sub[spec.label_by].to_numpy())
+    geoms = sub.geometry.to_numpy()
+    groups: dict[str, list] = {"line": [], "beside": [], "point": []}
+    for text, geom in zip(texts, geoms, strict=True):
+        if text is None or geom is None or geom.is_empty:
+            continue
+        kind = geom.geom_type
+        if kind in ("LineString", "MultiLineString"):
+            groups["line"].append((text, geom))
+        elif kind in ("Point", "MultiPoint"):
+            groups["beside"].append((text, geom))
+        else:
+            groups["point"].append((text, geom.representative_point()))
+    total = sum(len(v) for v in groups.values())
+    if total > LABEL_LIMIT:
+        warnings.warn(f"label-[{spec.label_by}] adds {total:,} labels; the map hides overlaps, "
+                      "but the page grows large. Label a subset instead.", KharitaWarning,
+                      stacklevel=4)
+    out = []
+    for placement, items in groups.items():
+        if not items:
+            continue
+        shapes = shapely.set_precision([g for _, g in items], 1e-5)
+        features = [{"type": "Feature", "properties": {"t": text},
+                     "geometry": json.loads(shapely.to_geojson(g))}
+                    for (text, _), g in zip(items, shapes, strict=True)]
+        out.append({"placement": placement,
+                    "geojson": {"type": "FeatureCollection", "features": features}})
+    return out
+
+
 def map(gdf, style: str, legend: dict | None = None, basemap: str | None = None,  # noqa: A001
         height: int | str = 500, title=None, subtitle=None, source=None,
         colors: dict | None = None, order: list | None = None) -> Map:
@@ -294,3 +374,43 @@ def legend(gdf, style: str, dark: bool = False, colors: dict | None = None,
     if scale is None:
         return ""
     return legend_panel([legend_block(scale, dark=dark, **options)], dark=dark)
+
+
+def link_views(*maps) -> None:
+    """Pan and zoom the maps together: moving one moves the rest (needs a running kernel)."""
+    views = [m.lonboard for m in maps]
+    busy = []
+
+    def follow(change, source):
+        # The guard stops the maps echoing each other's moves back and forth
+        if busy:
+            return
+        busy.append(True)
+        try:
+            for other in views:
+                if other is not source and other.view_state != change["new"]:
+                    other.view_state = change["new"]
+        finally:
+            busy.clear()
+
+    for view in views:
+        view.observe(lambda change, view=view: follow(change, view), names="view_state")
+    for other in views[1:]:
+        other.view_state = views[0].view_state
+
+
+def compare(*maps: "Map", link: bool = True):
+    """Two or more kharita maps side by side; with link, they pan and zoom together."""
+    import ipywidgets as w
+
+    if len(maps) < 2:
+        raise ValueError("kh.compare needs two or more maps, such as kh.compare(m1, m2).")
+    for m in maps:
+        if not isinstance(m, Map):
+            raise TypeError("kh.compare takes kh.Map or kh.map(...) results, got "
+                            f"{type(m).__name__}.")
+    if link:
+        link_views(*maps)
+    return w.GridBox([m.widget() for m in maps],
+                     layout=w.Layout(grid_template_columns=f"repeat({len(maps)}, minmax(0, 1fr))",
+                                     grid_gap="8px", width="100%"))

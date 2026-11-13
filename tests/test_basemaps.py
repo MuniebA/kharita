@@ -30,7 +30,7 @@ def test_every_theme_builds_a_valid_shape(name):
     ids = [layer["id"] for layer in s["layers"]]
     assert len(ids) == len(set(ids))
     for layer in s["layers"]:
-        assert layer.get("source") in (None, "openmaptiles", "terrain")
+        assert layer.get("source") in (None, "openmaptiles", "terrain", "imagery")
 
 
 @pytest.mark.parametrize("name", list(kb.THEMES))
@@ -158,5 +158,5 @@ def test_buildings_sit_under_labels():
 
 def test_basemap_name_tables():
     assert set(kb.HOSTED) == {"light", "dark", "fiord"}
-    assert {"midnight", "neon", "dark", "fiord"} == set(kb.DARK_BASEMAPS)
+    assert {"midnight", "neon", "dark", "fiord", "satellite", "hybrid"} == set(kb.DARK_BASEMAPS)
     assert kb.resolve("terrain") == ("paper", "tint") and kb.resolve("mono") == ("mono", None)

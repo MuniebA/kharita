@@ -205,6 +205,64 @@ def height_block(label: str, top: float, tallest: float, fmt=None, dark: bool = 
     )
 
 
+def _nice(x: float) -> float:
+    # Two significant figures, so key values read as round numbers
+    if x <= 0:
+        return 0.0
+    digits = 1 - int(np.floor(np.log10(x)))
+    return float(round(x, digits))
+
+
+def _key_value(x: float, fmt=None) -> str:
+    # A key label: your format, short numbers when large, else plain
+    if fmt:
+        return fmt.format(x)
+    return compact(x) if abs(x) >= COMPACT_FROM else fmt_number(x, 0 if float(x).is_integer()
+                                                                  else 1)
+
+
+def size_block(label: str, top: float, biggest: float, fmt=None, dark: bool = False) -> str:
+    """Key for circles sized by data: three nested circles with their values."""
+    t = DARK if dark else LIGHT
+    values = [top] + [v for v in (_nice(top / 4), _nice(top / 16)) if v > 0]
+    radii = [biggest * np.sqrt(v / top) if top else 0 for v in values]
+    width, height = 2 * biggest + 84, 2 * biggest + 4
+    bottom = height - 2
+    parts = []
+    for v, r in zip(values, radii, strict=True):
+        cy = bottom - r
+        x_end = 2 * biggest + 10
+        parts.append(f'<circle cx="{biggest + 2:.1f}" cy="{cy:.1f}" r="{r:.1f}" fill="none" '
+                     f'stroke="{t["quiet"]}" stroke-width="1"/>'
+                     f'<line x1="{biggest + 2:.1f}" y1="{cy - r:.1f}" x2="{x_end:.1f}" '
+                     f'y2="{cy - r:.1f}" stroke="{t["quiet"]}" stroke-width="0.6" '
+                     'stroke-dasharray="2 2"/>'
+                     f'<text x="{x_end + 4:.1f}" y="{cy - r + 3.5:.1f}" font-size="10.5" '
+                     f'fill="{t["ink"]}">{escape(_key_value(v, fmt))}</text>')
+    svg = (f'<svg width="{width:.0f}" height="{height:.0f}" viewBox="0 0 {width:.0f} '
+           f'{height:.0f}" style="display:block;overflow:visible">{"".join(parts)}</svg>')
+    return (
+        '<div class="kharita-legend-block" style="margin-bottom:8px">'
+        f'<div style="margin-bottom:5px">Circle size shows <b>{escape(label)}</b></div>{svg}</div>'
+    )
+
+
+def width_block(label: str, top: float, widest: float, fmt=None, dark: bool = False) -> str:
+    """Key for lines sized by data: three line samples with their values."""
+    t = DARK if dark else LIGHT
+    values = [top] + [v for v in (_nice(top / 2), _nice(top / 4)) if v > 0]
+    rows = "".join(
+        '<div style="display:flex;align-items:center;gap:8px;margin:3px 0">'
+        f'<span style="flex:none;width:34px;height:{max(widest * v / top, 0.5):.1f}px;'
+        f'background:{t["quiet"]};border-radius:2px"></span>'
+        f'<span>{escape(_key_value(v, fmt))}</span></div>'
+        for v in values) if top else ""
+    return (
+        '<div class="kharita-legend-block" style="margin-bottom:8px">'
+        f'<div style="margin-bottom:5px">Line width shows <b>{escape(label)}</b></div>{rows}</div>'
+    )
+
+
 def frame_card(title=None, subtitle=None, source=None, dark: bool = False) -> str:
     """The title card: title, subtitle and a source line."""
     if not (title or subtitle or source):

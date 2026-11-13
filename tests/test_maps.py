@@ -32,7 +32,7 @@ def test_explicit_basemap_wins_over_style(polygons):
 
 def test_bad_basemap_and_legend_options(polygons):
     with pytest.raises(ValueError, match="basemap"):
-        kh.Map(basemap="satellite")
+        kh.Map(basemap="google")
     with pytest.raises(ValueError, match="Unknown legend option"):
         kh.map(polygons, "fill-[pop]", legend={"titel": "x"})
     with pytest.raises(ValueError, match="classes"):

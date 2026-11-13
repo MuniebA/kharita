@@ -128,8 +128,13 @@ def _check(spec: StyleSpec, style: str) -> None:
                             "fill-[column] or stroke-[column].")
     if spec.extrude_max is not None and spec.extrude_by is None:
         fail("extrude_max", "extrude-max needs extrude-[column] to scale.")
+    if spec.size_max is not None and spec.size_by is None:
+        fail("size_max", "size-max needs size-[column] to scale.")
+    if spec.width_max is not None and spec.width_by is None:
+        fail("width_max", "width-max needs width-[column] to scale.")
     if spec.basemap in HOSTED or spec.basemap == "none":
-        groups = ("relief", "buildings", "labels", *(f"element_{n}" for n in spec.elements))
+        groups = ("relief", "buildings", "labels", "label",
+                  *(f"element_{n}" for n in spec.elements))
         for group in groups:
             if group in spec.origins:
                 fail(group, f"'{spec.origins[group][0].text}' changes a kharita basemap, but "

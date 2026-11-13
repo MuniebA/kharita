@@ -14,6 +14,8 @@ CONTEXT = {
     "scheme-div": "fill-[x] ramp-rdbu",
     "scheme-div-[50]": "fill-[x] ramp-rdbu",
     "extrude-max-5000": "extrude-[x]",
+    "size-max-30": "size-[x]",
+    "width-max-10": "width-[x]",
 }
 
 GOOD = [(u.name, ex) for u in UTILITIES.values() for ex in u.examples]

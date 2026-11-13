@@ -1,15 +1,17 @@
 """kharita: classified, legended Lonboard maps from one style string."""
 
 from kharita.adapter import layer
+from kharita.basemaps import imagery
 from kharita.binder import Bound, bind
 from kharita.catalog import check_ramp, colors, palette, ramps, theme
 from kharita.classify import Scale
 from kharita.errors import BindingError, KharitaError, KharitaWarning, StyleSyntaxError
-from kharita.maps import Map, legend, map
+from kharita.maps import Map, compare, legend, map
 from kharita.parser import define, explain, help, parse, utilities, validate
 from kharita.spec import StyleSpec
+from kharita.terrain import contours
 
-__version__ = "0.0.8"
+__version__ = "0.0.10"
 
 __all__ = [
     "BindingError",
@@ -24,9 +26,12 @@ __all__ = [
     "bind",
     "check_ramp",
     "colors",
+    "compare",
+    "contours",
     "define",
     "explain",
     "help",
+    "imagery",
     "layer",
     "legend",
     "map",
