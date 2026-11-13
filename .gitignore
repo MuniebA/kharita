@@ -18,6 +18,7 @@ data/raw/*
 
 # OpenStreetMap city extracts are rebuilt by notebooks/00b_city_data.ipynb
 data/processed/khartoum_*.gpkg
+data/processed/sudan_states.gpkg
 
 # Exported maps
 *.html
@@ -26,3 +27,6 @@ data/processed/khartoum_*.gpkg
 # OS
 .DS_Store
 Thumbs.db
+
+
+!spike_out\theme_export.html
